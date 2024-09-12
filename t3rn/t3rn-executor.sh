@@ -103,7 +103,7 @@ set_private_key() {
             echo "Private key telah disetel."
             break
         else
-            echo "Private key tidak valid. Harus 64 karakter panjangnya (tanpa prefix 0x)."
+            echo "Private key tidak valid. Harus 64 karakter panjangnya ."
         fi
     done
 }
