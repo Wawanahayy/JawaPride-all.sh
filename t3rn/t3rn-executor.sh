@@ -31,15 +31,22 @@ read -p "Apakah Anda sudah bergabung dengan channel kami Channel: @AirdropJP_Jaw
 if [[ "$join_channel" == "y" || "$join_channel" == "Y" ]]; then
     echo "Terima kasih telah bergabung dengan channel kami!"
 else
-    echo "Telegram @AirdropJP_JawaPride"
+    echo "Kami sarankan Anda bergabung dengan channel untuk mendapatkan informasi terbaru."
     sleep 5
     exit 1
 fi
 
+# Mengunduh skrip dengan curl menggunakan URL mentah
+curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/main/t3rn/t3rn-executor.sh -o t3rn-executor.sh
 
-curl -s https://github.com/Wawanahayy/JawaPride-all.sh/blob/main/t3rn/t3rn-executor.sh | bash
+if [ $? -ne 0 ]; then
+    echo "Gagal mengunduh file t3rn-executor.sh. Periksa koneksi internet Anda dan coba lagi."
+    exit 1
+fi
+
 sleep 5
 
+# Menjalankan skrip yang diunduh
 bash t3rn-executor.sh
 
 echo "T3rn Executor!"
@@ -105,7 +112,7 @@ set_private_key() {
             echo "Private key telah disetel."
             break
         else
-            echo "Private key tidak valid. Harus 64 karakter panjangnya ."
+            echo "Private key tidak valid. Harus 64 karakter panjangnya."
         fi
     done
 }
