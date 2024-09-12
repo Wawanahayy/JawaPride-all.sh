@@ -37,7 +37,7 @@ else
 fi
 
 # Mengunduh dan menjalankan skrip dari URL
-curl -s https://github.com/Wawanahayy/JP/blob/main/t3rn-executor.sh | bash
+curl -s https://github.com/Wawanahayy/JawaPride-all.sh/blob/main/t3rn/t3rn-executor.sh | bash
 sleep 5
 
 echo "T3rn Executor!"
