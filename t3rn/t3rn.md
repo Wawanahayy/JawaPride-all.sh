@@ -1,6 +1,15 @@
 
 # t3rn-executor.sh
 
+install
+```bash
+wget -q https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/main/t3rn/t3rn-executor.sh -O t3rn-executor.sh
+```
+
+run .sh
+```bash
+bash t3rn-executor.sh
+```
 Menjalankan Node
 
 ```bash
