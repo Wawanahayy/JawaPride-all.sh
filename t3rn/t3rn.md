@@ -25,6 +25,12 @@ Menghentikan Node
 sudo systemctl stop executor.service
 ```
 
+restart
+```bash
+sudo systemctl restart executor.service
+sudo journalctl -u executor.service -f
+```
+
 Menghapus Service
 
 ```bash
