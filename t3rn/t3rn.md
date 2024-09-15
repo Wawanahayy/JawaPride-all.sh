@@ -10,6 +10,9 @@ run .sh
 ```bash
 bash t3rn-executor.sh
 ```
+
+Y and N
+
 Menjalankan Node
 
 ```bash
