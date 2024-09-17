@@ -36,6 +36,34 @@ else
     exit 1
 fi
 
+# Mendefinisikan URL RPC baru
+ARBITRUM_RPC="https://arbitrum-sepolia.blockpi.network/v1/rpc/public"
+OPTIMISM_RPC="https://sepolia.optimism.io/rpc"
+BASE_RPC="https://sepolia.base.org/rpc"
+BLAST_RPC="https://sepolia.blast.io/"
+
+# Log untuk memeriksa koneksi RPC
+check_rpc() {
+    local url=$1
+    local network=$2
+    echo "[INFO] Memeriksa koneksi RPC di $url..."
+    while true; do
+        if curl -s --head "$url" | grep "200 OK" > /dev/null; then
+            echo "[INFO] Koneksi RPC $network tersedia."
+            break
+        else
+            echo "[INFO] RPC tidak tersedia. Mencoba lagi dalam 10 detik..."
+            sleep 10
+        fi
+    done
+}
+
+# Memeriksa koneksi untuk semua URL RPC yang didefinisikan
+check_rpc "$ARBITRUM_RPC" "Arbitrum"
+check_rpc "$OPTIMISM_RPC" "Optimism"
+check_rpc "$BASE_RPC" "Base"
+check_rpc "$BLAST_RPC" "Blast"
+
 # Mengunduh skrip dengan curl menggunakan URL mentah
 curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/main/t3rn/t3rn-executor.sh -o t3rn-executor.sh
 
@@ -168,7 +196,6 @@ display_log() {
     sudo journalctl -u executor.service -f
 }
 
-# Langkah-langkah untuk mengelola layanan dan binary
 remove_old_service
 update_system
 download_and_extract_binary
@@ -177,18 +204,4 @@ set_private_key
 set_enabled_networks
 create_systemd_service
 start_service
-
-# Memeriksa koneksi RPC di akhir
-echo "[INFO] Memeriksa koneksi RPC di https://sepolia.blast.io/..."
-while true; do
-    RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://sepolia.blast.io/)
-    if [ "$RESPONSE" -eq 200 ]; then
-        echo "RPC tersedia."
-        break
-    else
-        echo "RPC tidak tersedia. Mencoba lagi dalam 10 detik..."
-        sleep 10
-    fi
-done
-
 display_log
