@@ -36,23 +36,8 @@ else
     exit 1
 fi
 
-# Fungsi untuk mengecek koneksi RPC
-check_rpc_connection() {
-    local rpc_url=$1
-    log "INFO" "Memeriksa koneksi RPC di $rpc_url..."
-    if ! curl -s --head --request GET "$rpc_url" | grep "200 OK" > /dev/null; then 
-        echo "RPC tidak tersedia. Mencoba lagi dalam 10 detik..."
-        sleep 10
-        check_rpc_connection "$rpc_url"
-    fi
-}
-
-# Memeriksa koneksi RPC sebelum melanjutkan
-check_rpc_connection "https://sepolia.blast.io/"
-
 # Mengunduh skrip dengan curl menggunakan URL mentah
-log "INFO" "Mengunduh skrip executor..."
-curl --retry 5 --retry-delay 10 -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/main/t3rn/t3rn-executor.sh -o t3rn-executor.sh
+curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/main/t3rn/t3rn-executor.sh -o t3rn-executor.sh
 
 if [ $? -ne 0 ]; then
     echo "Gagal mengunduh file t3rn-executor.sh. Periksa koneksi internet Anda dan coba lagi."
@@ -62,13 +47,12 @@ fi
 sleep 5
 
 # Menjalankan skrip yang diunduh
-log "INFO" "Menjalankan skrip t3rn-executor.sh..."
 bash t3rn-executor.sh
 
-log "INFO" "T3rn Executor dijalankan!"
+echo "T3rn Executor!"
 
 remove_old_service() {
-    log "INFO" "Menghentikan dan menghapus service lama jika ada..."
+    echo "Menghentikan dan menghapus service lama jika ada..."
     sudo systemctl stop executor.service 2>/dev/null
     sudo systemctl disable executor.service 2>/dev/null
     sudo rm -f /etc/systemd/system/executor.service
@@ -77,7 +61,7 @@ remove_old_service() {
 }
 
 update_system() {
-    log "INFO" "Memperbarui dan meng-upgrade sistem..."
+    echo "Memperbarui dan meng-upgrade sistem..."
     sudo apt update -q && sudo apt upgrade -qy
     if [ $? -ne 0 ]; then
         echo "Update sistem gagal. Keluar."
@@ -90,16 +74,16 @@ download_and_extract_binary() {
     EXECUTOR_URL="https://github.com/t3rn/executor-release/releases/download/${LATEST_VERSION}/executor-linux-${LATEST_VERSION}.tar.gz"
     EXECUTOR_FILE="executor-linux-${LATEST_VERSION}.tar.gz"
 
-    log "INFO" "Versi terbaru terdeteksi: $LATEST_VERSION"
-    log "INFO" "Mengunduh binary Executor dari $EXECUTOR_URL..."
-    curl --retry 5 --retry-delay 10 -L -o $EXECUTOR_FILE $EXECUTOR_URL
+    echo "Versi terbaru terdeteksi: $LATEST_VERSION"
+    echo "Mengunduh binary Executor dari $EXECUTOR_URL..."
+    curl -L -o $EXECUTOR_FILE $EXECUTOR_URL
 
     if [ $? -ne 0 ]; then
         echo "Gagal mengunduh binary Executor. Periksa koneksi internet Anda dan coba lagi."
         exit 1
     fi
 
-    log "INFO" "Mengekstrak binary..."
+    echo "Mengekstrak binary..."
     tar -xzvf $EXECUTOR_FILE
     if [ $? -ne 0 ]; then
         echo "Ekstraksi gagal. Keluar."
@@ -115,7 +99,7 @@ set_environment_variables() {
     export NODE_ENV=testnet
     export LOG_LEVEL=info
     export LOG_PRETTY=false
-    log "INFO" "Variabel lingkungan disetel: NODE_ENV=$NODE_ENV, LOG_LEVEL=$LOG_LEVEL, LOG_PRETTY=$LOG_PRETTY"
+    echo "Variabel lingkungan disetel: NODE_ENV=$NODE_ENV, LOG_LEVEL=$LOG_LEVEL, LOG_PRETTY=$LOG_PRETTY"
 }
 
 set_private_key() {
@@ -125,7 +109,7 @@ set_private_key() {
 
         if [ ${#PRIVATE_KEY_LOCAL} -eq 64 ]; then
             export PRIVATE_KEY_LOCAL
-            log "INFO" "Private key telah disetel."
+            echo "Private key telah disetel."
             break
         else
             echo "Private key tidak valid. Harus 64 karakter panjangnya."
@@ -138,7 +122,7 @@ set_enabled_networks() {
 
     if [[ "$aktifkan_lima" == "y" || "$aktifkan_lima" == "Y" ]]; then
         ENABLED_NETWORKS="arbitrum-sepolia,base-sepolia,blast-sepolia,optimism-sepolia,l1rn"
-        log "INFO" "Mengaktifkan 5 jaringan default: $ENABLED_NETWORKS"
+        echo "Mengaktifkan 5 jaringan default: $ENABLED_NETWORKS"
     else
         echo "Anda tidak memilih untuk mengaktifkan 5 jaringan default."
         exit 0
@@ -175,15 +159,16 @@ start_service() {
     sudo systemctl daemon-reload
     sudo systemctl enable executor.service
     sudo systemctl start executor.service
-    log "INFO" "Setup selesai! Service Executor telah dibuat dan dijalankan."
+    echo "Setup selesai! Service Executor telah dibuat dan dijalankan."
     echo "Anda dapat memeriksa status service menggunakan: sudo systemctl status executor.service"
 }
 
 display_log() {
-    log "INFO" "Menampilkan log dari service executor:"
+    echo "Menampilkan log dari service executor:"
     sudo journalctl -u executor.service -f
 }
 
+# Langkah-langkah untuk mengelola layanan dan binary
 remove_old_service
 update_system
 download_and_extract_binary
@@ -192,4 +177,18 @@ set_private_key
 set_enabled_networks
 create_systemd_service
 start_service
+
+# Memeriksa koneksi RPC di akhir
+echo "[INFO] Memeriksa koneksi RPC di https://sepolia.blast.io/..."
+while true; do
+    RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://sepolia.blast.io/)
+    if [ "$RESPONSE" -eq 200 ]; then
+        echo "RPC tersedia."
+        break
+    else
+        echo "RPC tidak tersedia. Mencoba lagi dalam 10 detik..."
+        sleep 10
+    fi
+done
+
 display_log
