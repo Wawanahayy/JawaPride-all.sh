@@ -36,34 +36,6 @@ else
     exit 1
 fi
 
-# Mendefinisikan URL RPC baru
-ARBITRUM_RPC="https://arbitrum-sepolia.blockpi.network/v1/rpc/public"
-OPTIMISM_RPC="https://sepolia.optimism.io/rpc"
-BASE_RPC="https://sepolia.base.org/rpc"
-BLAST_RPC="https://sepolia.blast.io/"
-
-# Log untuk memeriksa koneksi RPC
-check_rpc() {
-    local url=$1
-    local network=$2
-    echo "[INFO] Memeriksa koneksi RPC di $url..."
-    while true; do
-        if curl -s --head "$url" | grep "200 OK" > /dev/null; then
-            echo "[INFO] Koneksi RPC $network tersedia."
-            break
-        else
-            echo "[INFO] RPC tidak tersedia. Mencoba lagi dalam 10 detik..."
-            sleep 10
-        fi
-    done
-}
-
-# Memeriksa koneksi untuk semua URL RPC yang didefinisikan
-check_rpc "$ARBITRUM_RPC" "Arbitrum"
-check_rpc "$OPTIMISM_RPC" "Optimism"
-check_rpc "$BASE_RPC" "Base"
-check_rpc "$BLAST_RPC" "Blast"
-
 # Mengunduh skrip dengan curl menggunakan URL mentah
 curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/main/t3rn/t3rn-executor.sh -o t3rn-executor.sh
 
@@ -176,7 +148,7 @@ Environment="PRIVATE_KEY_LOCAL=0x$PRIVATE_KEY_LOCAL"
 Environment="ENABLED_NETWORKS=$ENABLED_NETWORKS"
 ExecStart=/root/executor/executor/bin/executor
 Restart=always
-RestartSec=3
+RestartSec=360  # Restart service every 1 hour (3600 seconds)
 
 [Install]
 WantedBy=multi-user.target
