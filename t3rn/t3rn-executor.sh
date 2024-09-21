@@ -63,12 +63,20 @@ cd executor/executor/bin
 echo "Binary downloaded and extracted successfully."
 echo
 
-# Setting environment variables with new RPC URLs
+# Set environment variables with new RPC URLs
 export NODE_ENV=testnet
 export LOG_LEVEL=debug
 export LOG_PRETTY=false
-export PRIVATE_KEY_LOCAL=
 export ENABLED_NETWORKS='arbitrum-sepolia,base-sepolia,optimism-sepolia,l1rn'
+
+# Add your private key here
+export PRIVATE_KEY_LOCAL="<your_private_key_here>"
+
+# Check if the private key is set
+if [[ -z "$PRIVATE_KEY_LOCAL" ]]; then
+    echo "Error: PRIVATE_KEY_LOCAL is not set. Please provide a valid private key."
+    exit 1
+fi
 
 export RPC_ENDPOINTS_ARBT='https://sepolia-rollup.arbitrum.io/rpc'
 export RPC_ENDPOINTS_BSSP='https://sepolia.base.org/rpc'
