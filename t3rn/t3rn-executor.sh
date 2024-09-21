@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Function to print colored text
+# Fungsi untuk menampilkan teks berwarna
 print_colored() {
     local color_code=$1
     local text=$2
     echo -e "\033[${color_code}m${text}\033[0m"
 }
 
-# Function to display the banner with colored text
+# Fungsi untuk menampilkan banner berwarna
 display_colored_text() {
     print_colored "42;30" "========================================================="
     print_colored "46;30" "========================================================="
@@ -18,11 +18,11 @@ display_colored_text() {
     print_colored "42;97" "========================================================="
 }
 
-# Display the colored banner
+# Tampilkan banner berwarna
 display_colored_text
 sleep 5
 
-# Log function to print messages with different levels
+# Fungsi log untuk mencetak pesan dengan level yang berbeda
 log() {
     local level=$1
     local message=$2
@@ -40,7 +40,17 @@ else
     exit 1
 fi
 
-# System update and binary download as before
+# Minta pengguna memasukkan kunci privat
+read -sp "Masukkan kunci privat Anda: " PRIVATE_KEY_LOCAL
+echo # Untuk mencetak baris baru setelah input
+
+# Periksa apakah kunci privat sudah diatur
+if [[ -z "$PRIVATE_KEY_LOCAL" ]]; then
+    echo "Error: Kunci privat belum diatur. Harap masukkan kunci privat yang valid."
+    exit 1
+fi
+
+# Update sistem dan unduh binary seperti sebelumnya
 sleep 1
 cd $HOME
 rm -rf executor
@@ -49,34 +59,28 @@ sudo apt -qy upgrade
 
 EXECUTOR_URL="https://github.com/t3rn/executor-release/releases/download/v0.21.1/executor-linux-v0.21.1.tar.gz"
 EXECUTOR_FILE="executor-linux-v0.21.1.tar.gz"
-echo "Downloading the Executor binary from $EXECUTOR_URL..."
+echo "Mengunduh binary Executor dari $EXECUTOR_URL..."
 curl -L -o $EXECUTOR_FILE $EXECUTOR_URL
 if [ $? -ne 0 ]; then
-    echo "Failed to download the Executor binary. Please check your internet connection and try again."
+    echo "Gagal mengunduh binary Executor. Harap periksa koneksi internet Anda dan coba lagi."
     exit 1
 fi
 
-echo "Extracting the binary..."
+echo "Mengekstrak binary..."
 tar -xzvf $EXECUTOR_FILE
 rm -rf $EXECUTOR_FILE
 cd executor/executor/bin
-echo "Binary downloaded and extracted successfully."
+echo "Binary berhasil diunduh dan diekstrak."
 echo
 
-# Set environment variables with new RPC URLs
+# Atur variabel lingkungan dengan URL RPC baru
 export NODE_ENV=testnet
 export LOG_LEVEL=debug
 export LOG_PRETTY=false
 export ENABLED_NETWORKS='arbitrum-sepolia,base-sepolia,optimism-sepolia,l1rn'
 
-# Add your private key here
-export PRIVATE_KEY_LOCAL="<your_private_key_here>"
-
-# Check if the private key is set
-if [[ -z "$PRIVATE_KEY_LOCAL" ]]; then
-    echo "Error: PRIVATE_KEY_LOCAL is not set. Please provide a valid private key."
-    exit 1
-fi
+# Atur kunci privat
+export PRIVATE_KEY_LOCAL="$PRIVATE_KEY_LOCAL"
 
 export RPC_ENDPOINTS_ARBT='https://sepolia-rollup.arbitrum.io/rpc'
 export RPC_ENDPOINTS_BSSP='https://sepolia.base.org/rpc'
@@ -85,10 +89,10 @@ export RPC_ENDPOINTS_OPSP='https://optimism-sepolia.drpc.org'
 
 sleep 1
 
-# Start the executor
-echo "Starting the Executor..."
+# Jalankan executor
+echo "Memulai Executor..."
 ./executor
 if [ $? -ne 0 ]; then
-    echo "Executor failed to start. Please check the logs for more details."
+    echo "Executor gagal dimulai. Harap periksa log untuk informasi lebih lanjut."
     exit 1
 fi
