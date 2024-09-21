@@ -45,7 +45,7 @@ sudo systemctl disable executor.service
 sudo rm -f /etc/systemd/system/executor.service
 sudo systemctl daemon-reload
 rm -rf executor
-rm -rf t3rn-executor
+rm -rf t3rn-executor.sh
 ```
 Melihat Log Service
 ```bash
