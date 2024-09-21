@@ -150,7 +150,7 @@ Environment="PRIVATE_KEY_LOCAL=0x$PRIVATE_KEY_LOCAL"
 Environment="ENABLED_NETWORKS=$ENABLED_NETWORKS"
 ExecStart=/root/executor/executor/bin/executor
 Restart=always
-RestartSec=3600  # Restart service every 1 hour (3600 seconds)
+RestartSec=3600 
 [Install]
 WantedBy=multi-user.target
 EOL
