@@ -1,6 +1,9 @@
 
 # t3rn-executor.sh
 
+claim faucet brn
+https://faucet.brn.t3rn.io/
+
 install
 ```bash
 wget -q https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/main/t3rn/t3rn-executor.sh -O t3rn-executor.sh
