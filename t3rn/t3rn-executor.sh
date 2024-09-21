@@ -50,8 +50,7 @@ if [[ -z "$PRIVATE_KEY_LOCAL" ]]; then
     exit 1
 fi
 
-# Update sistem dan unduh binary seperti sebelumnya
-sleep 1
+# Update sistem dan unduh binary
 cd $HOME
 rm -rf executor
 sudo apt -q update
@@ -73,25 +72,23 @@ cd executor/executor/bin
 echo "Binary berhasil diunduh dan diekstrak."
 echo
 
-# Atur variabel lingkungan dengan URL RPC baru
+# Atur variabel lingkungan
 export NODE_ENV=testnet
 export LOG_LEVEL=debug
 export LOG_PRETTY=false
+export PRIVATE_KEY_LOCAL="$PRIVATE_KEY_LOCAL"
 export ENABLED_NETWORKS='arbitrum-sepolia,base-sepolia,optimism-sepolia,l1rn'
 
-# Atur kunci privat
-export PRIVATE_KEY_LOCAL="$PRIVATE_KEY_LOCAL"
-
+# Atur URL RPC
 export RPC_ENDPOINTS_ARBT='https://sepolia-rollup.arbitrum.io/rpc'
 export RPC_ENDPOINTS_BSSP='https://sepolia.base.org/rpc'
 export RPC_ENDPOINTS_BLSS='https://sepolia.blast.io/'
 export RPC_ENDPOINTS_OPSP='https://optimism-sepolia.drpc.org'
-
-sleep 1
+export RPC_ENDPOINTS_L1RN='https://brn.rpc.caldera.xyz/http'
 
 # Jalankan executor
 echo "Memulai Executor..."
-./executor
+./executor --trace-warnings
 if [ $? -ne 0 ]; then
     echo "Executor gagal dimulai. Harap periksa log untuk informasi lebih lanjut."
     exit 1
