@@ -18,5 +18,6 @@ export POPM_BTC_CHAIN_NAME="testnet3"
 ```
 run
 ```
+cd heminetwork
 ./popmd
 ```
