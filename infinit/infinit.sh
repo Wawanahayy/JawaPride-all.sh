@@ -20,8 +20,6 @@ display_colored_text() {
 display_colored_text
 sleep 5
 
-curl -s https://raw.githubusercontent.com/anggasec28/logo/refs/heads/main/logo.sh | bash
-sleep 3
 
 function show {
   echo -e "\e[1;34m$1\e[0m"
