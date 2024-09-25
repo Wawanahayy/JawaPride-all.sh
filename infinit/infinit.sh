@@ -66,7 +66,8 @@ echo "Mengimpor wallet..."
 read -p "Masukkan private key wallet Anda: " PRIVATE_KEY
 
 echo "Inisialisasi Infinit CLI dan menghasilkan akun..."
-bunx infinit account import --private-key "$PRIVATE_KEY"
+# Periksa kembali perintah ini di dokumentasi Infinit
+bunx infinit account import "$PRIVATE_KEY"
 
 read -p "Wallet address (masukkan address dari step sebelumnya): " WALLET
 read -p "Account ID (lakukan seperti diatas): " ACCOUNT_ID
@@ -74,7 +75,7 @@ read -p "Account ID (lakukan seperti diatas): " ACCOUNT_ID
 echo "Copy private key dan simpan"
 bunx infinit account export "$ACCOUNT_ID"
 
-# Removing old deployUniswapV3Action script if exists
+# Menghapus skrip deployUniswapV3Action yang lama jika ada
 rm -rf src/scripts/deployUniswapV3Action.script.ts
 
 cat <<EOF > src/scripts/deployUniswapV3Action.script.ts
