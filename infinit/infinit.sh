@@ -16,30 +16,25 @@ display_colored_text() {
     print_colored "42;97" "========================================================="
 }
 
-# Panggil fungsi untuk menampilkan teks berwarna
 display_colored_text
 sleep 5
 
 export NVM_DIR="$HOME/.nvm"
 if [ -s "$NVM_DIR/nvm.sh" ]; then
     echo "Loading NVM..."
-    echo
     source "$NVM_DIR/nvm.sh"
 else
     echo "NVM not found, installing NVM..."
-    echo
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
     source "$NVM_DIR/nvm.sh"
 fi
 
 echo
 echo "Installing Node.js..."
-echo
 nvm install 22 && nvm alias default 22 && nvm use default
 echo
 
 echo "Installing Foundry..."
-echo
 curl -L https://foundry.paradigm.xyz | bash
 export PATH="$HOME/.foundry/bin:$PATH"
 sleep 5
@@ -47,7 +42,6 @@ source ~/.bashrc
 foundryup
 
 echo "Installing Bun..."
-echo
 curl -fsSL https://bun.sh/install | bash
 export PATH="$HOME/.bun/bin:$PATH"
 sleep 5
@@ -55,14 +49,12 @@ source ~/.bashrc
 echo
 
 echo "Setting up Bun project..."
-echo
 mkdir -p ~/infinit && cd ~/infinit
 bun init -y
 bun add @infinit-xyz/cli
 echo
 
 echo "Creating infinit.config.yaml..."
-echo
 cat <<EOF > infinit.config.yaml
 network:
   name: holesky
@@ -71,11 +63,9 @@ EOF
 echo "File infinit.config.yaml berhasil dibuat."
 
 echo "Mengimpor wallet..."
-echo
 read -p "Masukkan private key wallet Anda: " PRIVATE_KEY
 
 echo "Inisialisasi Infinit CLI dan menghasilkan akun..."
-echo
 bunx infinit account import --private-key "$PRIVATE_KEY"
 
 read -p "Wallet address (masukkan address dari step sebelumnya): " WALLET
@@ -84,7 +74,6 @@ read -p "Account ID (lakukan seperti diatas): " ACCOUNT_ID
 echo
 
 echo "Copy private key dan simpan"
-echo
 bunx infinit account export "$ACCOUNT_ID"
 
 sleep 5
@@ -121,6 +110,4 @@ const signer = {
 export default { params, signer, Action: DeployUniswapV3Action }
 EOF
 
-echo "Executing the UniswapV3 Action script..."
-echo
-bunx infinit script execute deployUniswapV3Action.script.ts
+echo "Skrip UniswapV3 Action sudah disiapkan. Anda dapat menjalankan skrip ini secara manual."
