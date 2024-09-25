@@ -1,15 +1,22 @@
+import os
+import requests
+import time
+import crayons
+import json
+import threading
 
-import os, requests, time, crayons, json, threading
+def display_colored_text():
+    print("Menampilkan teks berwarna")
+    print("=========================================================")
+    print("=========================================================")
+    print("======================   T3EN   =========================")
+    print("============== create all by JAWA-PRIDE  ================")
+    print("=========== https://t.me/AirdropJP_JawaPride ============")
+    print("=========================================================")
+    print("=========================================================")
 
 def print_banner():
     display_colored_text()
-    print_colored("42;30", "=========================================================")
-    print_colored("46;30", "=========================================================")
-    print_colored("45;97", "=====================   moonbix  ========================")
-    print_colored("43;30", "============== create all by JAWA-PRIDE  ================")
-    print_colored("41;97", "=========== https://t.me/AirdropJP_JawaPride ============")
-    print_colored("44;30", "=========================================================")
-    print_colored("42;97", "=========================================================")
 
 def log(message, level="INFO"):
     levels = {
@@ -18,8 +25,13 @@ def log(message, level="INFO"):
         "SUCCESS": crayons.green,
         "WARNING": crayons.yellow
     }
-    # Print the log message without the timestamp
     print(f"{levels.get(level, crayons.cyan)(level)} | {message}")
+
+
+if __name__ == '__main__':
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print_banner()
+
 
 class MoonBix:
     def __init__(self, token, proxy=None):
