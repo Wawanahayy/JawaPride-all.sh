@@ -1,33 +1,51 @@
 #!/bin/bash
 
-curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/infinit/infinit.sh | bash
+
+print_colored() {
+    echo -e "\e[$1m$2\e[0m"
+}
+
+
+display_colored_text() {
+    print_colored "42;30" "========================================================="
+    print_colored "46;30" "========================================================="
+    print_colored "45;97" "======================   T3EN   ========================="
+    print_colored "43;30" "============== create all by JAWA-PRIDE  ================"
+    print_colored "41;97" "=========== https://t.me/AirdropJP_JawaPride ============"
+    print_colored "44;30" "========================================================="
+    print_colored "42;97" "========================================================="
+}
+
+
+display_colored_text
+sleep 5
+
+curl -s https://raw.githubusercontent.com/anggasec28/logo/refs/heads/main/logo.sh | bash
 sleep 3
 
 function show {
   echo -e "\e[1;34m$1\e[0m"
 }
 
-
 export NVM_DIR="$HOME/.nvm"
 if [ -s "$NVM_DIR/nvm.sh" ]; then
-    show "Loading NVM..."
+    show "Memuat NVM..."
     echo
     source "$NVM_DIR/nvm.sh"
 else
-    show "NVM not found, installing NVM..."
+    show "NVM tidak ditemukan, menginstal NVM..."
     echo
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
     source "$NVM_DIR/nvm.sh"
 fi
 
-
 echo
-show "Installing Node.js..."
+show "Menginstal Node.js..."
 echo
 nvm install 22 && nvm alias default 22 && nvm use default
 echo
 
-show "Installing Foundry..."
+show "Menginstal Foundry..."
 echo
 curl -L https://foundry.paradigm.xyz | bash
 export PATH="$HOME/.foundry/bin:$PATH"
@@ -35,8 +53,7 @@ sleep 5
 source ~/.bashrc
 foundryup
 
-
-show "Installing Bun..."
+show "Menginstal Bun..."
 echo
 curl -fsSL https://bun.sh/install | bash
 export PATH="$HOME/.bun/bin:$PATH"
@@ -44,31 +61,31 @@ sleep 5
 source ~/.bashrc
 echo
 
-show "Setting up Bun project..."
+show "Menyiapkan proyek Bun..."
 echo
 mkdir infinit && cd infinit
 bun init -y
 bun add @infinit-xyz/cli
 echo
 
-show "Initializing Infinit CLI and generating account..."
+show "Inisialisasi Infinit CLI dan menghasilkan akun..."
 echo
 bunx infinit init
 bunx infinit account generate
 echo
 
-read -p "Wallet address (masukkan address dari step sebelumnya) : " WALLET
+read -p "Alamat dompet (masukkan address dari step sebelumnya) : " WALLET
 echo
-read -p "account ID (lakukan seperti diatas) : " ACCOUNT_ID
+read -p "ID akun (lakukan seperti diatas) : " ACCOUNT_ID
 echo
 
-show "Copy private key dan simpan "
+show "Salin kunci pribadi dan simpan"
 echo
 bunx infinit account export $ACCOUNT_ID
 
 sleep 5
 echo
-# Removing old deployUniswapV3Action script if exists
+
 rm -rf src/scripts/deployUniswapV3Action.script.ts
 
 cat <<EOF > src/scripts/deployUniswapV3Action.script.ts
@@ -77,22 +94,13 @@ import type { z } from 'zod'
 
 type Param = z.infer<typeof actions['init']['paramsSchema']>
 
-// TODO: Replace with actual params
 const params: Param = {
-  // Native currency label (e.g., ETH)
   "nativeCurrencyLabel": 'ETH',
-
-  // Address of the owner of the proxy admin
   "proxyAdminOwner": '$WALLET',
-
-  // Address of the owner of factory
   "factoryOwner": '$WALLET',
-
-  // Address of the wrapped native token (e.g., WETH)
   "wrappedNativeToken": '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
 }
 
-// Signer configuration
 const signer = {
   "deployer": "$ACCOUNT_ID"
 }
@@ -100,6 +108,6 @@ const signer = {
 export default { params, signer, Action: DeployUniswapV3Action }
 EOF
 
-show "Executing the UniswapV3 Action script..."
+show "Menjalankan skrip UniswapV3..."
 echo
 bunx infinit script execute deployUniswapV3Action.script.ts
