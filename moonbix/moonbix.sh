@@ -27,12 +27,6 @@ def log(message, level="INFO"):
     }
     print(f"{levels.get(level, crayons.cyan)(level)} | {message}")
 
-
-if __name__ == '__main__':
-    os.system('cls' if os.name == 'nt' else 'clear')
-    print_banner()
-
-
 class MoonBix:
     def __init__(self, token, proxy=None):
         self.session = requests.session()
@@ -127,27 +121,32 @@ class MoonBix:
             log(f"Error during start game: {e}", level="ERROR")
 
     def start(self):
-        if not self.login():
-            log("Login gagal.", level="ERROR")
-            return
-        if not self.user_info():
-            log("Gagal mengambil data pengguna.", level="ERROR")
-            return
-    
-       
         while True:
-            if self.start_game():
-                if not self.game_data():
-                    log("Gagal membuat data game!", level="ERROR")
-                    return
-                sleep(60)  # Change this to 1 minute
-                if not self.complete_game():
-                    log("Gagal menyelesaikan game", level="ERROR")
-                log("Game selesai, menunggu 3 jam untuk memulai ulang.", level="INFO")
-                sleep(180)  # Change this to 3 hours
-            else:
-                log("Gagal memulai game, menunggu 1 menit untuk mencoba lagi.", level="WARNING")
-                sleep(60)  # Change this to 1 minute
+            try:
+                if not self.login():
+                    log("Login gagal.", level="ERROR")
+                    continue
+                if not self.user_info():
+                    log("Gagal mengambil data pengguna.", level="ERROR")
+                    continue
+    
+                while True:
+                    if self.start_game():
+                        if not self.game_data():
+                            log("Gagal membuat data game!", level="ERROR")
+                            continue
+                        sleep(60)  # Tunggu 1 menit sebelum menyelesaikan game
+                        if not self.complete_game():
+                            log("Gagal menyelesaikan game", level="ERROR")
+                        log("Game selesai, menunggu 1 menit untuk memulai ulang.", level="INFO")
+                        sleep(60)  # Tunggu 1 menit sebelum memulai ulang
+                    else:
+                        log("Gagal memulai game, menunggu 1 menit untuk mencoba lagi.", level="WARNING")
+                        sleep(60)  # Tunggu 1 menit sebelum mencoba lagi
+            except Exception as e:
+                log(f"Terjadi kesalahan: {e}", level="ERROR")
+                log("Menunggu 1 menit sebelum mencoba lagi...", level="WARNING")
+                sleep(60)  # Tunggu 1 menit sebelum mencoba lagi
 
 def sleep(seconds):
     while seconds > 0:
@@ -160,9 +159,9 @@ def sleep(seconds):
 def run_account(index, token, proxy=None):
     log(f"Memulai Akun {index} dengan Token", level="INFO")
     x = MoonBix(token, proxy)
-    x.start()
+    x.start()  # Mulai permainan
     log(f"Akun {index} selesai |", level="SUCCESS")
-    sleep(60)  # Change this to 1 minute
+    sleep(60)  # Tunggu 1 menit sebelum melanjutkan ke akun berikutnya
 
 if __name__ == '__main__':
     os.system('cls' if os.name == 'nt' else 'clear')
