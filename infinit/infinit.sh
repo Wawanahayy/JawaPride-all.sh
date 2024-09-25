@@ -14,59 +14,57 @@ display_colored_text() {
     print_colored "44;30" "========================================================="
 }
 
-display_colored_text
-sleep 5 
+loading_step() {
+    display_colored_text
+    print_colored "35;97" "$1"
+    echo
+}
 
+loading_step "Loading NVM..."
 export NVM_DIR="$HOME/.nvm"
 if [ -s "$NVM_DIR/nvm.sh" ]; then
-    print_colored "35;97" "Loading NVM..."
-    echo
     source "$NVM_DIR/nvm.sh"
 else
-    print_colored "35;97" "NVM not found, installing NVM..."
-    echo
+    loading_step "NVM not found, installing NVM..."
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
     source "$NVM_DIR/nvm.sh"
 fi
 
-echo
-print_colored "35;97" "Installing Node.js..."
-echo
+loading_step "Installing Node.js..."
 nvm install 22 && nvm alias default 22 && nvm use default
+print_colored "35;97" "Node.js installed successfully."
 echo
 
-print_colored "35;97" "Installing Foundry..."
-echo
+loading_step "Installing Foundry..."
 curl -L https://foundry.paradigm.xyz | bash
 export PATH="$HOME/.foundry/bin:$PATH"
-sleep 5
 source ~/.bashrc
 foundryup
-
-print_colored "35;97" "Installing Bun..."
+print_colored "35;97" "Foundry installed successfully."
 echo
+
+loading_step "Installing Bun..."
 curl -fsSL https://bun.sh/install | bash
 export PATH="$HOME/.bun/bin:$PATH"
-sleep 5
 source ~/.bashrc
+print_colored "35;97" "Bun installed successfully."
 echo
 
-print_colored "35;97" "Setting up Bun project..."
-echo
+loading_step "Setting up Bun project..."
 mkdir JawaPride && cd JawaPride
 bun init -y
 bun add @infinit-xyz/cli
+print_colored "35;97" "Bun project set up successfully."
 echo
 
-print_colored "35;97" "Initializing Infinit CLI and generating account..."
-echo
+loading_step "Initializing Infinit CLI and generating account..."
 bunx infinit init
 bunx infinit account generate
 echo
 
 read -p "What is your wallet address (Input the address from the step above) : " WALLET
 echo
-read -p "What is your account ID / BUAT ID (entered in the step above) : " ACCOUNT_ID
+read -p "What is your account ID (entered in the step above) : " ACCOUNT_ID
 echo
 
 print_colored "35;97" "Copy this private key and save it somewhere, this is the private key of this wallet"
@@ -107,6 +105,5 @@ const signer = {
 export default { params, signer, Action: DeployUniswapV3Action }
 EOF
 
-print_colored "35;97" "Executing the UniswapV3 Action script..."
-echo
+loading_step "Executing the UniswapV3 Action script..."
 bunx infinit script execute deployUniswapV3Action.script.ts
