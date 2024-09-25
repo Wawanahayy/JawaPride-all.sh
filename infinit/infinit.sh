@@ -66,7 +66,7 @@ echo
 
 read -p "What is your wallet address (Input the address from the step above) : " WALLET
 echo
-read -p "What is your account ID (entered in the step above) : " ACCOUNT_ID
+read -p "What is your account ID / BUAT ID (entered in the step above) : " ACCOUNT_ID
 echo
 
 print_colored "35;97" "Copy this private key and save it somewhere, this is the private key of this wallet"
