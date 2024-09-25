@@ -21,23 +21,23 @@ sleep 5
 
 export NVM_DIR="$HOME/.nvm"
 if [ -s "$NVM_DIR/nvm.sh" ]; then
-    show "Loading NVM..."
+    echo "Loading NVM..."
     echo
     source "$NVM_DIR/nvm.sh"
 else
-    show "NVM not found, installing NVM..."
+    echo "NVM not found, installing NVM..."
     echo
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
     source "$NVM_DIR/nvm.sh"
 fi
 
 echo
-show "Installing Node.js..."
+echo "Installing Node.js..."
 echo
 nvm install 22 && nvm alias default 22 && nvm use default
 echo
 
-show "Installing Foundry..."
+echo "Installing Foundry..."
 echo
 curl -L https://foundry.paradigm.xyz | bash
 export PATH="$HOME/.foundry/bin:$PATH"
@@ -45,7 +45,7 @@ sleep 5
 source ~/.bashrc
 foundryup
 
-show "Installing Bun..."
+echo "Installing Bun..."
 echo
 curl -fsSL https://bun.sh/install | bash
 export PATH="$HOME/.bun/bin:$PATH"
@@ -53,14 +53,14 @@ sleep 5
 source ~/.bashrc
 echo
 
-show "Setting up Bun project..."
+echo "Setting up Bun project..."
 echo
 mkdir -p ~/infinit && cd ~/infinit
 bun init -y
 bun add @infinit-xyz/cli
 echo
 
-show "Creating infinit.config.yaml..."
+echo "Creating infinit.config.yaml..."
 echo
 cat <<EOF > infinit.config.yaml
 network:
@@ -69,22 +69,22 @@ network:
 EOF
 echo "File infinit.config.yaml berhasil dibuat."
 
-show "Mengimpor wallet..."
+echo "Mengimpor wallet..."
 echo
 read -p "Masukkan private key wallet Anda: " PRIVATE_KEY
 
-show "Inisialisasi Infinit CLI dan menghasilkan akun..."
+echo "Inisialisasi Infinit CLI dan menghasilkan akun..."
 echo
 bunx infinit account import --private-key "$PRIVATE_KEY"
 
-read -p "Wallet address (masukkan address dari step sebelumnya) : " WALLET
+read -p "Wallet address (masukkan address dari step sebelumnya): " WALLET
 echo
-read -p "account ID (lakukan seperti diatas) : " ACCOUNT_ID
+read -p "Account ID (lakukan seperti diatas): " ACCOUNT_ID
 echo
 
-show "Copy private key dan simpan "
+echo "Copy private key dan simpan"
 echo
-bunx infinit account export $ACCOUNT_ID
+bunx infinit account export "$ACCOUNT_ID"
 
 sleep 5
 echo
@@ -120,6 +120,6 @@ const signer = {
 export default { params, signer, Action: DeployUniswapV3Action }
 EOF
 
-show "Executing the UniswapV3 Action script..."
+echo "Executing the UniswapV3 Action script..."
 echo
 bunx infinit script execute deployUniswapV3Action.script.ts
