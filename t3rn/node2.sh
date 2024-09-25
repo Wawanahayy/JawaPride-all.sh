@@ -11,7 +11,7 @@ print_colored() {
 display_colored_text() {
     print_colored "42;30" "========================================================="
     print_colored "46;30" "========================================================="
-    print_colored "45;97" "======================   T3EN Node 2 ======================"
+    print_colored "45;97" "======================   T3EN Node 2   ===================="
     print_colored "43;30" "============== create all by JAWA-PRIDE  ================"
     print_colored "41;97" "=========== https://t.me/AirdropJP_JawaPride ============"
     print_colored "44;30" "========================================================="
@@ -43,23 +43,23 @@ while true; do
 done
 
 # Mengunduh skrip dengan curl menggunakan URL mentah
-curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/main/t3rn/t3rn-executor.sh -o t3rn-executor.sh
+curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/main/t3rn/t3rn-executor.sh -o t3rn-executor-node2.sh
 if [ $? -ne 0 ]; then
-    echo "Gagal mengunduh file t3rn-executor.sh. Periksa koneksi internet Anda dan coba lagi."
+    echo "Gagal mengunduh file t3rn-executor-node2.sh. Periksa koneksi internet Anda dan coba lagi."
     exit 1
 fi
 
 sleep 5
 # Menjalankan skrip yang diunduh
-bash t3rn-executor.sh
+bash t3rn-executor-node2.sh
 echo "T3rn Executor Node 2!"
 
 # Fungsi untuk menghentikan dan menghapus service lama jika ada
 remove_old_service() {
-    echo "Menghentikan dan menghapus service lama jika ada... (Node 2)"
-    sudo systemctl stop executor-node2.service 2>/dev/null
-    sudo systemctl disable executor-node2.service 2>/dev/null
-    sudo rm -f /etc/systemd/system/executor-node2.service
+    echo "Menghentikan dan menghapus service lama jika ada..."
+    sudo systemctl stop executor_node2.service 2>/dev/null
+    sudo systemctl disable executor_node2.service 2>/dev/null
+    sudo rm -f /etc/systemd/system/executor_node2.service
     sudo systemctl daemon-reload
     echo "Service lama telah dihapus."
 }
@@ -135,7 +135,7 @@ set_enabled_networks() {
 
 # Fungsi untuk membuat service systemd
 create_systemd_service() {
-    SERVICE_FILE="/etc/systemd/system/executor-node2.service"
+    SERVICE_FILE="/etc/systemd/system/executor_node2.service"
     sudo bash -c "cat > $SERVICE_FILE" <<EOL
 [Unit]
 Description=Executor Node 2 Service
@@ -148,7 +148,7 @@ Environment="LOG_LEVEL=info"
 Environment="LOG_PRETTY=false"
 Environment="PRIVATE_KEY_LOCAL=0x$PRIVATE_KEY_LOCAL"
 Environment="ENABLED_NETWORKS=$ENABLED_NETWORKS"
-ExecStart=/root/executor/executor/bin/executor
+ExecStart=/root/executor/executor/bin/executor --port 3001  # Ubah port sesuai kebutuhan
 Restart=always
 RestartSec=3600 
 [Install]
@@ -159,16 +159,16 @@ EOL
 # Fungsi untuk memulai service
 start_service() {
     sudo systemctl daemon-reload
-    sudo systemctl enable executor-node2.service
-    sudo systemctl start executor-node2.service
+    sudo systemctl enable executor_node2.service
+    sudo systemctl start executor_node2.service
     echo "Setup selesai! Service Executor Node 2 telah dibuat dan dijalankan."
-    echo "Anda dapat memeriksa status service menggunakan: sudo systemctl status executor-node2.service"
+    echo "Anda dapat memeriksa status service menggunakan: sudo systemctl status executor_node2.service"
 }
 
 # Fungsi untuk menampilkan log dari service executor
 display_log() {
-    echo "Menampilkan log dari service executor Node 2:"
-    sudo journalctl -u executor-node2.service -f
+    echo "Menampilkan log dari service executor node 2:"
+    sudo journalctl -u executor_node2.service -f
 }
 
 # Menjalankan seluruh proses
