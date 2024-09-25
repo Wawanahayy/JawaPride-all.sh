@@ -4,6 +4,7 @@ import time
 import crayons
 import json
 import threading
+import random
 
 def display_colored_text():
     print("Menampilkan teks berwarna")
@@ -26,12 +27,6 @@ def log(message, level="INFO"):
         "WARNING": crayons.yellow
     }
     print(f"{levels.get(level, crayons.cyan)(level)} | {message}")
-
-
-if __name__ == '__main__':
-    os.system('cls' if os.name == 'nt' else 'clear')
-    print_banner()
-
 
 class MoonBix:
     def __init__(self, token, proxy=None):
@@ -134,20 +129,19 @@ class MoonBix:
             log("Gagal mengambil data pengguna.", level="ERROR")
             return
     
-       
         while True:
             if self.start_game():
                 if not self.game_data():
                     log("Gagal membuat data game!", level="ERROR")
                     return
-                sleep(45)  
+                time.sleep(45)  
                 if not self.complete_game():
                     log("Gagal menyelesaikan game", level="ERROR")
                 log("Game selesai, menunggu 3 jam untuk memulai ulang.", level="INFO")
-                sleep(10800)  
+                time.sleep(10800)  
             else:
                 log("Gagal memulai game, menunggu 1 menit untuk mencoba lagi.", level="WARNING")
-                sleep(60)  
+                time.sleep(60)  
 
 def sleep(seconds):
     while seconds > 0:
@@ -180,6 +174,9 @@ if __name__ == '__main__':
         t = threading.Thread(target=run_account, args=(index, token, proxy))
         threads.append(t)
         t.start()  
+        
+        # Adding a random delay of 1 to 3 minutes before starting the next account
+        time.sleep(random.randint(60, 180))
 
     for thread in threads:
         thread.join()  
