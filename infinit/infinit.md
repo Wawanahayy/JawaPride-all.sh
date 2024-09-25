@@ -8,3 +8,10 @@ run
 ```
 ./infinit.sh
 ```
+
+hapus
+```
+cd /root
+rm -rf JawaPride
+rm -rf infinit.sh
+```
