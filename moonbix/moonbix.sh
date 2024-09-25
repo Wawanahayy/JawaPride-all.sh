@@ -5,6 +5,12 @@ import crayons
 import json
 import threading
 
+print_colored() {
+    local color_code=$1
+    local text=$2
+    echo -e "\033[${color_code}m${text}\033[0m"
+}
+
 def display_colored_text():
     print("Menampilkan teks berwarna")
     print("=========================================================")
