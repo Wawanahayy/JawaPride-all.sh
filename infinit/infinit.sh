@@ -1,7 +1,9 @@
 #!/bin/bash
 
-function show {
-  echo -e "\e[1;34m$1\e[0m"
+print_colored() {
+    local color=$1
+    shift
+    echo -e "\e[${color}m$@\e[0m"
 }
 
 display_colored_text() {
