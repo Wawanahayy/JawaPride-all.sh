@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curl -s https://raw.githubusercontent.com/anggasec28/logo/refs/heads/main/logo.sh | bash
+curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/infinit/infinit.sh | bash
 sleep 3
 
 function show {
