@@ -16,6 +16,7 @@ display_colored_text() {
     print_colored "42;97" "========================================================="
 }
 
+# Panggil fungsi untuk menampilkan teks berwarna
 display_colored_text
 sleep 5
 
