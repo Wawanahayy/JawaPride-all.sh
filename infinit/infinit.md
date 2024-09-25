@@ -15,3 +15,8 @@ cd /root
 rm -rf JawaPride
 rm -rf infinit.sh
 ```
+
+deploy contract on @Infinit_Labs
+INFINIT has raised 6M$ Project is running INFINIT Early Access program
+
+join discord: https://discord.gg/X4cQTZ8zjf
