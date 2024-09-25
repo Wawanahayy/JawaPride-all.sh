@@ -21,47 +21,40 @@ sleep 5
 
 export NVM_DIR="$HOME/.nvm"
 if [ -s "$NVM_DIR/nvm.sh" ]; then
-    show "Loading NVM..."
-    echo
+    echo "Loading NVM..."
     source "$NVM_DIR/nvm.sh"
 else
-    show "NVM not found, installing NVM..."
-    echo
+    echo "NVM not found, installing NVM..."
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash
     source "$NVM_DIR/nvm.sh"
 fi
 
 echo
-show "Installing Node.js..."
-echo
+echo "Installing Node.js..."
 nvm install 22 && nvm alias default 22 && nvm use default
 echo
 
-show "Installing Foundry..."
-echo
+echo "Installing Foundry..."
 curl -L https://foundry.paradigm.xyz | bash
 export PATH="$HOME/.foundry/bin:$PATH"
 sleep 5
 source ~/.bashrc
 foundryup
 
-show "Installing Bun..."
-echo
+echo "Installing Bun..."
 curl -fsSL https://bun.sh/install | bash
 export PATH="$HOME/.bun/bin:$PATH"
 sleep 5
 source ~/.bashrc
 echo
 
-show "Setting up Bun project..."
-echo
+echo "Setting up Bun project..."
 mkdir -p ~/infinit && cd ~/infinit
 bun init -y
 bun add @infinit-xyz/cli
 echo
 
-show "Creating infinit.config.yaml..."
-echo
+echo "Creating infinit.config.yaml..."
 cat <<EOF > infinit.config.yaml
 network:
   name: holesky
@@ -69,31 +62,19 @@ network:
 EOF
 echo "File infinit.config.yaml berhasil dibuat."
 
-show "Mengimpor wallet..."
-echo
+echo "Mengimpor wallet..."
 read -p "Masukkan private key wallet Anda: " PRIVATE_KEY
 
-show "Inisialisasi Infinit CLI dan menghasilkan akun..."
-echo
-bunx infinit account import --private-key "$PRIVATE_KEY" || {
-    echo "Gagal mengimpor akun. Periksa opsi dan dokumentasi."
-    exit 1
-}
+echo "Inisialisasi Infinit CLI dan menghasilkan akun..."
+bunx infinit account import --private-key "$PRIVATE_KEY"
 
-read -p "Wallet address (masukkan address dari step sebelumnya) : " WALLET
-echo
-read -p "account ID (lakukan seperti diatas) : " ACCOUNT_ID
-echo
+read -p "Wallet address (masukkan address dari step sebelumnya): " WALLET
+read -p "Account ID (lakukan seperti diatas): " ACCOUNT_ID
 
-show "Copy private key dan simpan "
-echo
-bunx infinit account export $ACCOUNT_ID
-
-sleep 5
-echo
+echo "Copy private key dan simpan"
+bunx infinit account export "$ACCOUNT_ID"
 
 # Removing old deployUniswapV3Action script if exists
-mkdir -p src/scripts
 rm -rf src/scripts/deployUniswapV3Action.script.ts
 
 cat <<EOF > src/scripts/deployUniswapV3Action.script.ts
@@ -116,6 +97,5 @@ const signer = {
 export default { params, signer, Action: DeployUniswapV3Action }
 EOF
 
-show "Executing the UniswapV3 Action script..."
-echo
+echo "Executing the UniswapV3 Action script..."
 bunx infinit script execute deployUniswapV3Action.script.ts
