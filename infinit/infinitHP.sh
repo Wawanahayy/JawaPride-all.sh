@@ -20,37 +20,6 @@ loading_step() {
     echo
 }
 
-# Menampilkan pilihan chain
-echo "Pilih Chain yang diinginkan:"
-echo "1. Ethereum Mainnet"
-echo "2. Mantle"
-echo "3. [Testnet] Holesky"
-echo "4. [Testnet] Sepolia"
-
-read -p "Masukkan pilihan Anda (1-4): " chain_choice
-
-case $chain_choice in
-    1)
-        CHAIN="Ethereum Mainnet"
-        ;;
-    2)
-        CHAIN="Mantle"
-        ;;
-    3)
-        CHAIN="Holesky"
-        ;;
-    4)
-        CHAIN="Sepolia"
-        ;;
-    *)
-        print_colored "31;97" "Pilihan tidak valid. Silakan pilih antara 1 dan 4."
-        exit 1
-        ;;
-esac
-
-print_colored "32;97" "Anda memilih $CHAIN."
-
-# Lanjutkan dengan proses selanjutnya
 loading_step "Loading NVM..."
 export NVM_DIR="$HOME/.nvm"
 if [ -s "$NVM_DIR/nvm.sh" ]; then
@@ -66,4 +35,75 @@ nvm install 22 && nvm alias default 22 && nvm use default
 print_colored "35;97" "Node.js installed successfully."
 echo
 
-# ... (lanjutan dari kode Anda)
+loading_step "Installing Foundry..."
+curl -L https://foundry.paradigm.xyz | bash
+export PATH="$HOME/.foundry/bin:$PATH"
+source ~/.bashrc
+foundryup
+print_colored "35;97" "Foundry installed successfully."
+echo
+
+loading_step "Installing Bun..."
+curl -fsSL https://bun.sh/install | bash
+export PATH="$HOME/.bun/bin:$PATH"
+source ~/.bashrc
+print_colored "35;97" "Bun installed successfully."
+echo
+
+loading_step "Setting up Bun project..."
+mkdir JawaPride && cd JawaPride
+bun init -y
+bun add @infinit-xyz/cli
+print_colored "35;97" "Bun project set up successfully."
+echo
+
+loading_step "Initializing Infinit CLI and generating account for Holesky..."
+bunx infinit init --chain "Holesky" --protocol "Uniswap V3"  
+bunx infinit account generate
+echo
+
+read -p "What is your wallet address (Input the address from the step above) : " WALLET
+echo
+read -p "What is your account ID (entered in the step above) : " ACCOUNT_ID
+echo
+
+print_colored "35;97" "Copy this private key and save it somewhere, this is the private key of this wallet"
+echo
+bunx infinit account export $ACCOUNT_ID
+
+sleep 5
+echo
+# Removing old deployUniswapV3Action script if exists
+rm -rf src/scripts/deployUniswapV3Action.script.ts
+
+cat <<EOF > src/scripts/deployUniswapV3Action.script.ts
+import { DeployUniswapV3Action, type actions } from '@infinit-xyz/uniswap-v3/actions'
+import type { z } from 'zod'
+
+type Param = z.infer<typeof actions['init']['paramsSchema']>
+
+// TODO: Replace with actual params
+const params: Param = {
+  // Native currency label (e.g., ETH)
+  "nativeCurrencyLabel": 'ETH',
+
+  // Address of the owner of the proxy admin
+  "proxyAdminOwner": '$WALLET',
+
+  // Address of the owner of factory
+  "factoryOwner": '$WALLET',
+
+  // Address of the wrapped native token (e.g., WETH)
+  "wrappedNativeToken": '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2'
+}
+
+// Signer configuration
+const signer = {
+  "deployer": "$ACCOUNT_ID"
+}
+
+export default { params, signer, Action: DeployUniswapV3Action }
+EOF
+
+loading_step "Executing the UniswapV3 Action script..."
+bunx infinit script execute deployUniswapV3Action.script.ts
