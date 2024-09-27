@@ -2,21 +2,23 @@ import requests
 import json
 import datetime
 import base64
-import re
 from PIL import Image
 from io import BytesIO
+import re
 import ddddocr
 from loguru import logger
-import time
 
 # URL Pengaturan
 KeepAliveURL = "https://www.aeropres.in/chromeapi/dawn/v1/userreward/keepalive"
 GetPointURL = "https://www.aeropres.in/api/atom/v1/userreferral/getpoint"
-LoginURL = "https://www.aeropres.in//chromeapi/dawn/v1/user/login/v2"
+LoginURL = "https://www.aeropres.in/chromeapi/dawn/v1/user/login/v2"
 PuzzleID = "https://www.aeropres.in/chromeapi/dawn/v1/puzzle/get-puzzle"
+FastCaptchaURL = "https://thedataextractors.com/fast-captcha/api/solve/recaptcha"
 
-# 2Captcha API Key
-API_KEY_2CAPTCHA = "YOUR_2CAPTCHA_API_KEY"  # Ganti dengan API key Anda
+# Membaca kunci API Fast Captcha dari file
+def get_fast_captcha_api_key():
+    with open('fast_captcha_api_key.txt', 'r') as file:
+        return file.read().strip()
 
 def GetPuzzleID():
     headers = {
@@ -39,64 +41,48 @@ def GetPuzzleID():
         return None
 
 def IsValidExpression(expression):
+    # Memeriksa apakah ekspresi terdiri dari 6 karakter huruf dan angka
     pattern = r'^[A-Za-z0-9]{6}$'
     return bool(re.match(pattern, expression))
 
 def solve_captcha(api_key, website_url, website_key):
-    # Mengirim permintaan ke 2Captcha
-    url = "http://2captcha.com/in.php"
-    data = {
-        "clientKey": api_key,
-        "task": {
-            "type": "HCaptchaTaskProxyless",
-            "websiteURL": website_url,
-            "websiteKey": website_key
-        }
+    headers = {
+        'apiSecretKey': api_key,
+        'Content-Type': 'application/x-www-form-urlencoded'
     }
+    payload = f'webUrl={website_url}&websiteKey={website_key}'
     try:
-        response = requests.post(url, json=data)
-        if response.status_code == 200:
-            result = response.json()
-            if result['status'] == 1:
-                task_id = result['request']
-                return task_id
-            else:
-                logger.error(f"Gagal membuat tugas CAPTCHA: {result['request']}")
-                return None
-        else:
-            logger.error(f"Permintaan gagal: {response.status_code}")
-            return None
+        response = requests.post(FastCaptchaURL, headers=headers, data=payload, verify=False)
+        response.raise_for_status()
+        return response.json().get('solution')
     except requests.exceptions.RequestException as e:
-        logger.error(f"Gagal mengirim permintaan ke 2Captcha: {e}")
+        logger.error(f"Gagal menyelesaikan CAPTCHA: {e}")
         return None
 
-def get_captcha_solution(api_key, task_id):
-    url = "http://2captcha.com/res.php"
-    data = {
-        "clientKey": api_key,
-        "taskId": task_id,
-        "action": "get"
-    }
-    
-    while True:
-        try:
-            response = requests.post(url, data=data)
-            if response.status_code == 200:
-                result = response.json()
-                if result['status'] == 1:
-                    return result['request']  # Solusi CAPTCHA
-                elif result['request'] == 'CAPTCHA_NOT_READY':
-                    logger.debug("Menunggu solusi CAPTCHA...")
-                    time.sleep(5)  # Tunggu sebelum mencoba lagi
-                else:
-                    logger.error(f"Gagal mendapatkan solusi: {result['request']}")
-                    break
+def RemixCaptacha(base64_image):
+    # Mendekode string Base64 menjadi data biner
+    image_data = base64.b64decode(base64_image)
+    image = Image.open(BytesIO(image_data))
+
+    # Pengolahan gambar
+    image = image.convert('RGB')
+    new_image = Image.new('RGB', image.size, 'white')
+    width, height = image.size
+    for x in range(width):
+        for y in range(height):
+            pixel = image.getpixel((x, y))
+            if pixel == (48, 48, 48):  # Piksel hitam
+                new_image.putpixel((x, y), pixel)  # Pertahankan hitam asli
             else:
-                logger.error(f"Permintaan gagal: {response.status_code}")
-                break
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Gagal mengirim permintaan: {e}")
-            break
+                new_image.putpixel((x, y), (255, 255, 255))  # Ganti dengan putih
+
+    # Menggunakan OCR untuk mengenali CAPTCHA
+    ocr = ddddocr.DdddOcr(show_ad=False)
+    ocr.set_ranges(0)
+    result = ocr.classification(new_image)
+    logger.debug(f'[1] Hasil pengenalan CAPTCHA: {result}，Apakah ekspresi dapat dihitung? {IsValidExpression(result)}')
+    if IsValidExpression(result):
+        return result
 
 def login(USERNAME, PASSWORD):
     puzzid = GetPuzzleID()
@@ -115,41 +101,33 @@ def login(USERNAME, PASSWORD):
         "puzzle_id": puzzid,
         "ans": "0"
     }
-
-    # Mendapatkan gambar CAPTCHA
     try:
         refresh_image = requests.get(f'https://www.aeropres.in/chromeapi/dawn/v1/puzzle/refresh-image/{puzzid}', verify=False).json()
         base64_image = refresh_image['image']
-        logger.debug(f'[2] Gambar CAPTCHA diambil.')
-
-        # Memecahkan CAPTCHA menggunakan 2Captcha
-        website_url = "https://www.aeropres.in"  # URL situs web yang memerlukan CAPTCHA
-        website_key = "f7de0da3-3303-44e8-ab48-fa32ff8ccc7b"  # Kunci situs web (hCaptcha)
-        
-        task_id = solve_captcha(API_KEY_2CAPTCHA, website_url, website_key)
-        if task_id:
-            captcha_solution = get_captcha_solution(API_KEY_2CAPTCHA, task_id)
-            logger.debug(f'[2] Hasil pengenalan: {captcha_solution}')
+        logger.debug(f'[2] Gambar CAPTCHA (Base64): {base64_image}')  # Log gambar CAPTCHA
+        captcha_solution = RemixCaptacha(base64_image)
+        logger.debug(f'[3] Hasil pengenalan: {captcha_solution}')
+        if captcha_solution:
             data['ans'] = captcha_solution
-            
-            headers = {
-                "Content-Type": "application/json"
-            }
-            response = requests.post(LoginURL, json=data, headers=headers, verify=False)
-            logger.debug(f'[3] Respons permintaan login: {response.text}')
-            if response.status_code == 200:
-                result = response.json()
-                if result['result'] == 'success':
-                    logger.info('Login berhasil')
-                    return True
-                else:
-                    logger.error(f'Login gagal: {result.get("msg")}')
-                    return False
+        else:
+            logger.error("Gagal menyelesaikan CAPTCHA, login dihentikan")
+            return False
+        
+        headers = {
+            "Content-Type": "application/json"
+        }
+        response = requests.post(LoginURL, json=data, headers=headers, verify=False)
+        logger.debug(f'[4] Respons permintaan login: {response.text}')
+        if response.status_code == 200:
+            result = response.json()
+            if result['result'] == 'success':
+                logger.info('Login berhasil')
+                return True
             else:
-                logger.error(f'Permintaan gagal: {response.status_code}')
+                logger.error(f'Login gagal: {result.get("msg")}')
                 return False
         else:
-            logger.error("Gagal mendapatkan solusi CAPTCHA.")
+            logger.error(f'Permintaan gagal: {response.status_code}')
             return False
     except requests.exceptions.RequestException as e:
         logger.error(f"Permintaan login gagal: {e}")
