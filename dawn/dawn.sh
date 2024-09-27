@@ -90,7 +90,7 @@ function install_and_start_dawn() {
     read -r -p "Masukkan kunci API Fast Captcha: " FAST_CAPTCHA_API_KEY
     echo "$FAST_CAPTCHA_API_KEY" > fast_captcha_api_key.txt
 
-    wget -O dawn.py https://raw.githubusercontent.com/sdohuajia/Dawn/main/dawn.py
+    wget -O dawn.py https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/dawn/dawn.py
 
     # Memulai Dawn
     pm2 start python3 --name dawn -- dawn.py
