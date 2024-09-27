@@ -1,169 +1,160 @@
-import requests
+import ast
 import json
-import datetime
-import base64
-from PIL import Image
-from io import BytesIO
 import re
+
+import requests
+import random
+import time
+import datetime
+import urllib3
+from PIL import Image
+import base64
+from io import BytesIO
 import ddddocr
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from loguru import logger
 
-# URL Pengaturan
-KeepAliveURL = "https://www.aeropres.in/chromeapi/dawn/v1/userreward/keepalive"
-GetPointURL = "https://www.aeropres.in/api/atom/v1/userreferral/getpoint"
-LoginURL = "https://www.aeropres.in/chromeapi/dawn/v1/user/login/v2"
-PuzzleID = "https://www.aeropres.in/chromeapi/dawn/v1/puzzle/get-puzzle"
-FastCaptchaURL = "https://thedataextractors.com/fast-captcha/api/solve/recaptcha"
+URLKeepAlive = "https://www.aeropres.in/chromeapi/dawn/v1/userreward/keepalive"
+URLGetPoint = "https://www.aeropres.in/api/atom/v1/userreferral/getpoint"
+URLLogin = "https://www.aeropres.in//chromeapi/dawn/v1/user/login/v2"
+URLPuzzleID = "https://www.aeropres.in/chromeapi/dawn/v1/puzzle/get-puzzle"
 
-# Mengambil kunci API Fast Captcha dari input pengguna
-def get_fast_captcha_api_key():
-    return input("Masukkan Fast Captcha API Key Anda: ")
+# Membuat sesi permintaan
+session = requests.Session()
 
-def GetPuzzleID():
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
-    try:
-        r = requests.get(PuzzleID, headers=headers, verify=False)
-        if r.status_code == 200:
-            logger.debug(f"Respons Puzzle ID: {r.text}")
-            return r.json().get('puzzle_id')
-        else:
-            logger.error(f"Permintaan untuk mendapatkan Puzzle ID gagal, status kode: {r.status_code}")
-            return None
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Gagal mendapatkan Puzzle ID: {e}")
-        return None
-    except json.JSONDecodeError as e:
-        logger.error(f"Gagal mengurai JSON Puzzle ID: {e}")
-        logger.debug(f"Respons konten: {r.text}")
-        return None
+# Menetapkan header permintaan umum
+header = {
+    "Content-Type": "application/json",
+    "Origin": "chrome-extension://fpdkjdnhkakefebpekbdhillbhonfjjp",
+    "Accept": "*/*",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Priority": "u=1, i",
+    "Sec-Fetch-Dest": "empty",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Site": "cross-site",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36"
+}
 
-def IsValidExpression(expression):
-    # Memeriksa apakah ekspresi terdiri dari 6 karakter huruf dan angka
-    pattern = r'^[A-Za-z0-9]{6}$'
-    return bool(re.match(pattern, expression))
 
-def solve_captcha(api_key, website_url, website_key):
-    headers = {
-        'apiSecretKey': api_key,
-        'Content-Type': 'application/x-www-form-urlencoded'
-    }
-    payload = f'webUrl={website_url}&websiteKey={website_key}'
-    try:
-        response = requests.post(FastCaptchaURL, headers=headers, data=payload, verify=False)
-        response.raise_for_status()
-        return response.json().get('solution')
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Gagal menyelesaikan CAPTCHA: {e}")
-        return None
+def AmbilPuzzleID():
+    r = session.get(URLPuzzleID, headers=header, verify=False).json()
+    puzzid = r['puzzle_id']
+    return puzzid
 
-def RemixCaptacha(base64_image):
-    # Mendekode string Base64 menjadi data biner
-    image_data = base64.b64decode(base64_image)
-    image = Image.open(BytesIO(image_data))
+# Memeriksa validitas ekspresi CAPTCHA
+def ApakahEkspresiValid(expression):
+    # Memeriksa apakah ekspresi terdiri dari 6 karakter alfanumerik
+    pola = r'^[A-Za-z0-9]{6}$'
+    if re.match(pola, expression):
+        return True
+    return False
 
-    # Pengolahan gambar
-    image = image.convert('RGB')
-    new_image = Image.new('RGB', image.size, 'white')
-    width, height = image.size
-    for x in range(width):
-        for y in range(height):
-            pixel = image.getpixel((x, y))
-            if pixel == (48, 48, 48):  # Piksel hitam
-                new_image.putpixel((x, y), pixel)  # Pertahankan hitam asli
+# Pengenalan CAPTCHA
+def PengenalanCaptcha(base64_image):
+    # Meng-decode string Base64 menjadi data biner
+    data_gambar = base64.b64decode(base64_image)
+    # Menggunakan BytesIO untuk mengubah data biner menjadi objek file yang dapat dibaca
+    gambar = Image.open(BytesIO(data_gambar))
+    
+    # Mengubah gambar menjadi mode RGB (jika belum)
+    gambar = gambar.convert('RGB')
+    # Membuat gambar baru (latar belakang putih)
+    gambar_baru = Image.new('RGB', gambar.size, 'white')
+    # Mendapatkan lebar dan tinggi gambar
+    lebar, tinggi = gambar.size
+    # Mengulangi semua piksel
+    for x in range(lebar):
+        for y in range(tinggi):
+            piksel = gambar.getpixel((x, y))
+            # Jika piksel berwarna hitam, pertahankan; jika tidak, ganti dengan putih
+            if piksel == (48, 48, 48):  # Piksel hitam
+                gambar_baru.putpixel((x, y), piksel)  # Mempertahankan warna asli hitam
             else:
-                new_image.putpixel((x, y), (255, 255, 255))  # Ganti dengan putih
+                gambar_baru.putpixel((x, y), (255, 255, 255))  # Mengganti dengan putih
 
-    # Menggunakan OCR untuk mengenali CAPTCHA
+    # Membuat objek OCR
     ocr = ddddocr.DdddOcr(show_ad=False)
     ocr.set_ranges(0)
-    result = ocr.classification(new_image)
-    logger.debug(f'[1] Hasil pengenalan CAPTCHA: {result}，Apakah ekspresi dapat dihitung? {IsValidExpression(result)}')
-    if IsValidExpression(result):
-        return result
+    hasil = ocr.classification(gambar_baru)
+    logger.debug(f'[1] Hasil pengenalan CAPTCHA: {hasil}, apakah valid: {ApakahEkspresiValid(hasil)}')
+    if ApakahEkspresiValid(hasil):
+        return hasil
 
-def login(USERNAME, PASSWORD, api_key):
-    puzzid = GetPuzzleID()
-    if not puzzid:
-        logger.error("Gagal mendapatkan Puzzle ID, login dihentikan")
-        return False
 
-    current_time = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds').replace("+00:00", "Z")
+def login(USERNAME, PASSWORD):
+    puzzid = AmbilPuzzleID()
+    waktu_sekarang = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds').replace("+00:00", "Z")
     data = {
         "username": USERNAME,
         "password": PASSWORD,
         "logindata": {
-            "_v": "1.0.8",
-            "datetime": current_time
+            "_v": "1.0.7",
+            "datetime": waktu_sekarang
         },
         "puzzle_id": puzzid,
         "ans": "0"
     }
-    try:
-        refresh_image = requests.get(f'https://www.aeropres.in/chromeapi/dawn/v1/puzzle/refresh-image/{puzzid}', verify=False).json()
-        base64_image = refresh_image['image']
-        logger.debug(f'[2] Gambar CAPTCHA (Base64): {base64_image}')  # Log gambar CAPTCHA
-        captcha_solution = RemixCaptacha(base64_image)
-        logger.debug(f'[3] Hasil pengenalan: {captcha_solution}')
-        if captcha_solution:
-            data['ans'] = captcha_solution
-        else:
-            logger.error("Gagal menyelesaikan CAPTCHA, login dihentikan")
-            return False
-        
-        headers = {
-            "Content-Type": "application/json"
-        }
-        response = requests.post(LoginURL, json=data, headers=headers, verify=False)
-        logger.debug(f'[4] Respons permintaan login: {response.text}')
-        if response.status_code == 200:
-            result = response.json()
-            if result['result'] == 'success':
-                logger.info('Login berhasil')
-                return True
-            else:
-                logger.error(f'Login gagal: {result.get("msg")}')
-                return False
-        else:
-            logger.error(f'Permintaan gagal: {response.status_code}')
-            return False
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Permintaan login gagal: {e}")
-        return False
+    # Bagian pengenalan CAPTCHA
+    refresh_image = session.get(f'https://www.aeropres.in/chromeapi/dawn/v1/puzzle/get-puzzle-image?puzzle_id={puzzid}', headers=header, verify=False).json()
+    kode = PengenalanCaptcha(refresh_image['imgBase64'])
+    if kode:
+        logger.success(f'[√] Berhasil mendapatkan hasil CAPTCHA: {kode}')
+        data['ans'] = str(kode)
+        data_login = json.dumps(data)
+        logger.info(f'[2] Data login: {data_login}')
+        try:
+            r = session.post(URLLogin, data_login, headers=header, verify=False).json()
+            logger.debug(r)
+            token = r['data']['token']
+            logger.success(f'[√] Berhasil mendapatkan AuthToken: {token}')
+            return token
+        except Exception as e:
+            logger.error(f'[x] Kesalahan CAPTCHA, mencoba mendapatkan ulang...')
 
-def keep_alive():
-    headers = {
-        "Content-Type": "application/json"
-    }
-    try:
-        response = requests.post(KeepAliveURL, headers=headers, verify=False)
-        if response.status_code == 200:
-            logger.info('Permintaan untuk menjaga sesi tetap aktif berhasil')
-        else:
-            logger.error(f'Permintaan untuk menjaga sesi tetap aktif gagal: {response.status_code}')
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Permintaan untuk menjaga sesi tetap aktif gagal: {e}")
+def KeepAlive(USERNAME, TOKEN):
+    data = {"username": USERNAME, "extensionid": "fpdkjdnhkakefebpekbdhillbhonfjjp", "numberoftabs": 0, "_v": "1.0.7"}
+    json_data = json.dumps(data)
+    header['authorization'] = "Bearer " + str(TOKEN)
+    r = session.post(URLKeepAlive, data=json_data, headers=header, verify=False).json()
+    logger.info(f'[3] Menjaga koneksi... {r}')
 
-def get_point():
-    headers = {
-        "Content-Type": "application/json"
-    }
-    try:
-        response = requests.get(GetPointURL, headers=headers, verify=False)
-        if response.status_code == 200:
-            result = response.json()
-            logger.info(f'Pengambilan poin berhasil: {result}')
-        else:
-            logger.error(f'Pengambilan poin gagal: {response.status_code}')
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Pengambilan poin gagal: {e}")
 
-if __name__ == "__main__":
-    USERNAME = input("Masukkan nama pengguna Anda: ")  # Mengambil nama pengguna dari input
-    PASSWORD = input("Masukkan kata sandi Anda: ")  # Mengambil kata sandi dari input
-    api_key = get_fast_captcha_api_key()  # Mengambil kunci API dari input pengguna
+def GetPoint(TOKEN):
+    header['authorization'] = "Bearer " + str(TOKEN)
+    r = session.get(URLGetPoint, headers=header, verify=False).json()
+    logger.success(f'[√] Berhasil mendapatkan poin: {r}')
 
-    if login(USERNAME, PASSWORD, api_key):
-        keep_alive()
-        get_point()
+
+def main(USERNAME, PASSWORD):
+    TOKEN = ''
+    if TOKEN == '':
+        while True:
+            TOKEN = login(USERNAME, PASSWORD)
+            if TOKEN:
+                break
+    # Inisialisasi penghitung
+    count = 0
+    max_count = 200  # Setiap 200 kali, token akan diambil ulang
+    while True:
+        try:
+            # Melakukan operasi menjaga koneksi dan mendapatkan poin
+            KeepAlive(USERNAME, TOKEN)
+            GetPoint(TOKEN)
+            # Memperbarui penghitung
+            count += 1
+            # Setelah mencapai max_count, ambil token ulang
+            if count >= max_count:
+                logger.debug(f'[√] Mengambil token ulang...')
+                while True:
+                    TOKEN = login(USERNAME, PASSWORD)
+                    if TOKEN:
+                        break
+                count = 0  # Mengatur ulang penghitung
+        except Exception as e:
+            logger.error(e)
+
+
+if __name__ == '__main__':
+    with open('password.txt', 'r') as f:
+        username, password = f.readline().strip().split(':')
+    main(username, password)
