@@ -7,12 +7,12 @@ print_colored() {
 }
 
 display_colored_text() {
-    print_colored "42;37" "============================================================"  # Latar belakang hijau, teks putih
-    print_colored "40;96" "=======================  J.W.P.A  ==========================" # Latar belakang hitam, teks cyan
-    print_colored "45;97" "================= @AirdropJP_JawaPride =====================" # Latar belakang magenta, teks putih
-    print_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID =================" # Latar belakang kuning, teks hitam
-    print_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID =============="  # Latar belakang merah, teks putih
-    print_colored "44;30" "============================================================" # Latar belakang biru, teks hitam
+    print_colored "42;37" "============================================================"  
+    print_colored "40;96" "=======================  J.W.P.A  ==========================" 
+    print_colored "45;97" "================= @AirdropJP_JawaPride =====================" 
+    print_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID =================" 
+    print_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID ==============" 
+    print_colored "44;30" "============================================================" 
 }
 
 display_colored_text
