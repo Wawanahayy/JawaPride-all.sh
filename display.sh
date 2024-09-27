@@ -27,7 +27,7 @@ log() {
 # Pertanyaan untuk bergabung dengan channel
 while true; do
     read -p "Apakah Anda sudah bergabung dengan channel kami Channel: @AirdropJP_JawaPride? (y/n): " join_channel
-    echo "Input: $join_channel"  # Menampilkan input untuk debug
+    echo "Input: '$join_channel'"  # Menampilkan input untuk debug, termasuk tanda kutip
     case "$join_channel" in
         [yY]* ) 
             echo "Terima kasih telah bergabung!"
@@ -41,4 +41,3 @@ while true; do
             ;;
     esac
 done
-
