@@ -15,10 +15,9 @@ LoginURL = "https://www.aeropres.in/chromeapi/dawn/v1/user/login/v2"
 PuzzleID = "https://www.aeropres.in/chromeapi/dawn/v1/puzzle/get-puzzle"
 FastCaptchaURL = "https://thedataextractors.com/fast-captcha/api/solve/recaptcha"
 
-# Membaca kunci API Fast Captcha dari file
+# Mengambil kunci API Fast Captcha dari input pengguna
 def get_fast_captcha_api_key():
-    with open('fast_captcha_api_key.txt', 'r') as file:
-        return file.read().strip()
+    return input("Masukkan Fast Captcha API Key Anda: ")
 
 def GetPuzzleID():
     headers = {
@@ -84,7 +83,7 @@ def RemixCaptacha(base64_image):
     if IsValidExpression(result):
         return result
 
-def login(USERNAME, PASSWORD):
+def login(USERNAME, PASSWORD, api_key):
     puzzid = GetPuzzleID()
     if not puzzid:
         logger.error("Gagal mendapatkan Puzzle ID, login dihentikan")
@@ -161,9 +160,10 @@ def get_point():
         logger.error(f"Pengambilan poin gagal: {e}")
 
 if __name__ == "__main__":
-    USERNAME = "your_username"  # Gantilah dengan nama pengguna yang sebenarnya
-    PASSWORD = "your_password"  # Gantilah dengan kata sandi yang sebenarnya
+    USERNAME = input("Masukkan nama pengguna Anda: ")  # Mengambil nama pengguna dari input
+    PASSWORD = input("Masukkan kata sandi Anda: ")  # Mengambil kata sandi dari input
+    api_key = get_fast_captcha_api_key()  # Mengambil kunci API dari input pengguna
 
-    if login(USERNAME, PASSWORD):
+    if login(USERNAME, PASSWORD, api_key):
         keep_alive()
         get_point()
