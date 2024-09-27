@@ -24,14 +24,21 @@ log() {
     echo "[$level] $message"
 }
 
+# Pertanyaan untuk bergabung dengan channel
 while true; do
     read -p "Apakah Anda sudah bergabung dengan channel kami Channel: @AirdropJP_JawaPride? (y/n): " join_channel
-    if [[ "$join_channel" == "y" || "$join_channel" == "Y" ]]; then
-        break
-    elif [[ "$join_channel" == "n" || "$join_channel" == "N" ]]; then
-        echo "Silakan bergabung dengan channel terlebih dahulu."
-        exit 1
-    else
-        echo "Pilihan tidak valid. Harap masukkan 'y' atau 'n'."
-    fi
+    echo "Input: $join_channel"  # Menampilkan input untuk debug
+    case "$join_channel" in
+        [yY]* ) 
+            echo "Terima kasih telah bergabung!"
+            break 
+            ;;
+        [nN]* ) 
+            echo "Silakan bergabung dengan channel terlebih dahulu." && exit 1 
+            ;;
+        * ) 
+            echo "Pilihan tidak valid. Harap masukkan 'y' atau 'n'." 
+            ;;
+    esac
 done
+
