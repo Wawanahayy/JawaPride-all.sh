@@ -23,4 +23,3 @@ log() {
     local message=$2
     echo "[$level] $message"
 }
-
