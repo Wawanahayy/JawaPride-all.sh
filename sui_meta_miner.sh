@@ -1,20 +1,23 @@
 #!/bin/bash
 
+# Panggil display.sh untuk menampilkan pesan loading
+curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh | bash
+
 # Clone the repository
+echo "Mengunduh repositori Sui Meta Miner..."
 git clone https://github.com/Wawanahayy/sui_meta_miner
 
 # Navigate into the project directory
 cd sui_meta_miner
 
-# Install dependencies
+# Menampilkan pesan saat menginstal dependencies
+echo "Menginstal dependensi, harap tunggu..."
 npm install
 
-# Install suidouble
+# Menampilkan pesan saat menginstal suidouble
+echo "Menginstal suidouble, harap tunggu..."
 npm install suidouble
 
 # Display success message
-echo "Sui Meta Miner setup completed successfully!"
+echo "Setup Sui Meta Miner selesai dengan sukses!"
 
-chmod +x setup_sui_meta_miner.sh
-
-./setup_sui_meta_miner.sh
