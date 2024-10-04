@@ -21,4 +21,3 @@ npm install suidouble
 # Display success message
 echo "Setup Sui Meta Miner selesai dengan sukses!"
 
-cd sui_meta_miner
