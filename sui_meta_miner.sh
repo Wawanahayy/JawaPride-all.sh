@@ -14,6 +14,9 @@ cd sui_meta_miner
 echo "Menginstal dependensi, harap tunggu..."
 npm install
 
+echo "Menginstal dependensi, harap tunggu..."
+npm install axios
+
 # Menampilkan pesan saat menginstal suidouble
 echo "Menginstal suidouble, harap tunggu..."
 npm install suidouble
