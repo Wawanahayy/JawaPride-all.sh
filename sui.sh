@@ -2,21 +2,36 @@ import { SuiMaster } from 'suidouble';
 import config from './config.js';
 import Miner from './includes/Miner.js';
 import FomoMiner from './includes/fomo/FomoMiner.js';
-import axios from 'axios';  // For Telegram notifications
+import axios from 'axios';
+import readline from 'readline';  
 
-const TELEGRAM_BOT_TOKEN = 'TOKENBOTTELEGRAM';  // Replace with your bot token
-const TELEGRAM_CHAT_ID = 'CHATIDTELEGRAM';  // Replace with your chat ID
+const TELEGRAM_BOT_TOKEN = '7700684221:AAGnfTFzPAne433oWAFtHSlQ4ztcPsPMJDg'; 
 
-// Function to send a Telegram message
-const sendTelegramMessage = async (message) => {
+// Konfigurasi readline untuk mengambil input dari pengguna
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+// Fungsi untuk mendapatkan input ID obrolan Telegram
+const getTelegramChatId = () => {
+    return new Promise((resolve) => {
+        rl.question('Masukkan Telegram Chat ID Anda: ', (chatId) => {
+            resolve(chatId);
+            rl.close(); // Tutup interface readline setelah mendapatkan input
+        });
+    });
+};
+
+const sendTelegramMessage = async (message, chatId) => {
     const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
     try {
         await axios.post(url, {
-            chat_id: TELEGRAM_CHAT_ID,
+            chat_id: chatId,
             text: message,
         });
     } catch (error) {
-        console.error("Failed to send Telegram message:", error);
+        console.error("Gagal mengirim pesan Telegram:", error);
     }
 };
 
@@ -24,8 +39,11 @@ const run = async () => {
     const phrase = config.phrase;
     const chain = config.chain;
 
+    // Ambil Telegram Chat ID dari pengguna
+    const TELEGRAM_CHAT_ID = await getTelegramChatId();
+
     if (!config.phrase || !config.chain) {
-        throw new Error('phrase and chain parameters are required');
+        throw new Error('phrase dan chain parameter diperlukan');
     }
 
     const suiMasterParams = {
@@ -40,89 +58,89 @@ const run = async () => {
     const suiMaster = new SuiMaster(suiMasterParams);
     await suiMaster.initialize();
 
-    console.log('suiMaster connected as ', suiMaster.address);
+    console.log('suiMaster terhubung sebagai ', suiMaster.address);
 
     const miners = {};
 
-    // Meta mining with parallel mining support and Telegram notifications
+    // Meta mining dengan dukungan mining paralel dan notifikasi Telegram
     const doMineMeta = async (metaMinerInstance) => {
         let retryCount = 0;
         const maxRetries = 5;
-        let baseDelay = 200;  // Starting delay
-        const maxDelay = 5000;  // Max delay after exponential backoff
+        let baseDelay = 200;  // Delay awal
+        const maxDelay = 5000;  // Max delay setelah exponential backoff
 
         while (true) {
-            console.log("META | Attempting to mine META token...");
+            console.log("META | Mencoba menambang token META...");
 
             try {
                 const metaHashChanged = await metaMinerInstance.mine();
                 if (metaHashChanged) {
-                    console.log("META | Block hash changed detected for META, mining attempt successful.");
-                    retryCount = 0;  // Reset retries on success
-                    baseDelay = 200;  // Reset delay on success
+                    console.log("META | Perubahan hash blok terdeteksi untuk META, upaya penambangan berhasil.");
+                    retryCount = 0;  // Reset retries pada keberhasilan
+                    baseDelay = 200;  // Reset delay pada keberhasilan
 
-                    // Fetch balance and notify
-                    const balance = await suiMaster.getBalance();  // Assuming getBalance fetches current balance
-                    await sendTelegramMessage(`META mined successfully! New balance: ${balance}`);
+                    // Ambil saldo dan beri tahu
+                    const balance = await suiMaster.getBalance();  // Asumsi getBalance mengambil saldo saat ini
+                    await sendTelegramMessage(`WALLET 1 $META saldo: ${balance}`, TELEGRAM_CHAT_ID);
                 } else {
-                    console.log("META | Block hash unchanged for META, retrying...");
+                    console.log("META | Hash blok tidak berubah untuk META, mencoba lagi...");
                     retryCount++;
                     if (retryCount >= maxRetries) {
-                        console.log(`META | Maximum retries (${maxRetries}) reached. Increasing delay.`);
-                        baseDelay = Math.min(baseDelay * 2, maxDelay);  // Exponential backoff with cap
+                        console.log(`META | Jumlah maksimum percobaan (${maxRetries}) tercapai. Meningkatkan delay.`);
+                        baseDelay = Math.min(baseDelay * 2, maxDelay);  // Exponential backoff dengan batas
                         retryCount = 0;
                     }
                 }
             } catch (error) {
-                console.error("META | Mining attempt failed:", error);
-                baseDelay = Math.min(baseDelay * 2, maxDelay);  // Increase delay on failure
+                console.error("META | Upaya penambangan gagal:", error);
+                baseDelay = Math.min(baseDelay * 2, maxDelay);  // Tingkatkan delay pada kegagalan
             }
 
-            // Delay between mining attempts
+            // Delay antara upaya penambangan
             await new Promise((res) => setTimeout(res, baseDelay));
         }
     };
 
-    // FOMO mining with parallel mining support and Telegram notifications
+    // FOMO mining dengan dukungan mining paralel dan notifikasi Telegram
     const doMineFomo = async (fomoMinerInstance) => {
         let retryCount = 0;
         const maxRetries = 5;
-        let baseDelay = 150;  // Starting delay
-        const maxDelay = 5000;  // Max delay after exponential backoff
+        let baseDelay = 150;  // Delay awal
+        const maxDelay = 5000;  // Max delay setelah exponential backoff
 
         while (true) {
-            console.log("FOMO | Attempting to mine FOMO token...");
+            console.log("FOMO | Mencoba menambang token FOMO...");
 
             try {
                 const fomoHashChanged = await fomoMinerInstance.mine();
                 if (fomoHashChanged) {
-                    console.log("FOMO | Block hash changed detected for FOMO, mining attempt successful.");
-                    retryCount = 0;  // Reset retries on success
-                    baseDelay = 150;  // Reset delay on success
+                    console.log("FOMO | Perubahan hash blok terdeteksi untuk FOMO, upaya penambangan berhasil.");
+                    retryCount = 0;  // Reset retries pada keberhasilan
+                    baseDelay = 150;  // Reset delay pada keberhasilan
 
-                    // Fetch balance and notify
-                    const balance = await suiMaster.getBalance();  // Assuming getBalance fetches current balance
-                    await sendTelegramMessage(`FOMO mined successfully! New balance: ${balance}`);
+                    // Ambil saldo dan beri tahu
+                    const balance = await suiMaster.getBalance();  // Asumsi getBalance mengambil saldo saat ini
+                    await sendTelegramMessage(`WALLET 1 $FOMO saldo: ${balance}`, TELEGRAM_CHAT_ID);
                 } else {
-                    console.log("FOMO | Block hash unchanged for FOMO, retrying...");
+                    console.log("FOMO | Hash blok tidak berubah untuk FOMO, mencoba lagi...");
                     retryCount++;
                     if (retryCount >= maxRetries) {
-                        console.log(`FOMO | Maximum retries (${maxRetries}) reached. Increasing delay.`);
-                        baseDelay = Math.min(baseDelay * 2, maxDelay);  // Exponential backoff with cap
+                        console.log(`FOMO | Jumlah maksimum percobaan (${maxRetries}) tercapai. Meningkatkan delay.`);
+                        baseDelay = Math.min(baseDelay * 2, maxDelay);  // Exponential backoff dengan batas
                         retryCount = 0;
                     }
                 }
             } catch (error) {
-                console.error("FOMO | Mining attempt failed:", error);
-                baseDelay = Math.min(baseDelay * 2, maxDelay);  // Increase delay on failure
+                console.error("FOMO | Upaya penambangan gagal:", error);
+                baseDelay = Math.min(baseDelay * 2, maxDelay);  // Tingkatkan delay pada kegagalan
             }
 
-            // Delay between mining attempts
+            // Delay antara upaya penambangan
             await new Promise((res) => setTimeout(res, baseDelay));
         }
     };
 
-    // Start META Mining if config is set to doMeta
+    // Mulai Penambangan META jika config diset untuk doMeta
     if (config.do.meta) {
         const metaMiner = new Miner({
             suiMaster,
@@ -131,11 +149,11 @@ const run = async () => {
             treasuryId: config.treasuryId,
         });
         miners.meta = metaMiner;
-        // Run META mining in parallel
+        // Jalankan penambangan META secara paralel
         doMineMeta(miners.meta);
     }
 
-    // Start FOMO Mining if config is set to doFomo
+    // Mulai Penambangan FOMO jika config diset untuk doFomo
     if (config.do.fomo) {
         const fomoMiner = new FomoMiner({
             suiMaster,
@@ -144,11 +162,11 @@ const run = async () => {
             buses: config.fomo.buses,
         });
         miners.fomo = fomoMiner;
-        // Run FOMO mining in parallel
+        // Jalankan penambangan FOMO secara paralel
         doMineFomo(miners.fomo);
     }
 
-    console.log('Mining started...');
+    console.log('Penambangan dimulai...');
 };
 
 run().catch(console.error);
