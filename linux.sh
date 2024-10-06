@@ -71,7 +71,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/London
-      - CHROME_CLI=https://x.com/Wawanahayy
+      - CHROME_CLI=https://chromewebstore.google.com/detail/gradient-sentry-node/caacbgbklghmpodbdafajbgdnegacfmo
     volumes:
       - /root/chromium/config:/config
     ports:
