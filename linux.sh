@@ -5,7 +5,7 @@ SCRIPT_PATH="$HOME/Linux.sh"
 
 # Tampilkan Logo
 curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh | bash
-5
+sleep 5
 
 # Periksa apakah Docker sudah terinstal
 if ! command -v docker &> /dev/null; then
