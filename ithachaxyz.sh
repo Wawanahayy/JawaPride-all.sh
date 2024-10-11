@@ -1,52 +1,25 @@
 #!/bin/bash
 
-curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh | bash
-sleep 5
+# Skrip untuk menginstal dan menjalankan Odyssey
 
-# Mengupdate dan menginstal dependensi yang diperlukan
-echo "Mengupdate sistem dan menginstal dependensi..."
-apt update && apt upgrade -y
-apt install -y git cargo docker.io
-
-# Mengkloning repository Odyssey
-echo "Mengkloning repository Odyssey..."
-git clone https://github.com/ithacaxyz/odyssey
-cd odyssey || { echo "Gagal masuk ke direktori odyssey"; exit 1; }
-
-# Menginstal Odyssey
-echo "Menginstal Odyssey..."
-cargo install --path bin/odyssey
-if [ $? -ne 0 ]; then
-    echo "Terjadi kesalahan saat menginstal Odyssey!"
-    exit 1
+# Memastikan bahwa skrip dijalankan dengan hak akses root
+if [ "$EUID" -ne 0 ]; then
+  echo "Silakan jalankan skrip ini sebagai root atau menggunakan sudo."
+  exit 1
 fi
 
-# Menjalankan Node Odyssey dengan konfigurasi pengembangan
-echo "Menjalankan Node Odyssey dengan konfigurasi pengembangan..."
-odyssey node --chain etc/odyssey-genesis.json --dev --http --http.api all &
-sleep 10
+# Mengkloning repositori Odyssey
+echo "Mengkloning repositori Odyssey..."
+git clone https://github.com/ithacaxyz/odyssey
+cd odyssey || exit
 
-# Menjalankan Node Eksekusi Odyssey
-echo "Menjalankan Node Eksekusi Odyssey..."
-odyssey node \
-    --chain etc/odyssey-genesis.json \
-    --rollup.sequencer-http http://localhost:9551 \
-    --http \
-    --ws \
-    --authrpc.port 9551 \
-    --authrpc.jwtsecret /path/to/your/jwt.hex &
-sleep 10
+# Menginstal biner Odyssey
+echo "Menginstal biner Odyssey..."
+cargo install --path bin/odyssey
 
-# Menjalankan op-node dengan konfigurasi Odyssey
-echo "Menjalankan op-node dengan konfigurasi Odyssey..."
-cd odyssey/ || { echo "Gagal masuk ke direktori odyssey"; exit 1; }
-op-node \
-    --rollup.config ./etc/odyssey-rollup.json \
-    --l1=https://sepolia.infura.io/v3/\
-    --l2=http://localhost:9551 \
-    --l2.jwt-secret=/path/to/your/jwt.hex \
-    --rpc.addr=0.0.0.0 \
-    --rpc.port=7000 \
-    --l1.trustrpc &
+# Menjalankan node Odyssey dengan konfigurasi pengembangan
+echo "Menjalankan node Odyssey..."
+odyssey node --chain etc/odyssey-genesis.json --dev --http --http.api all
 
-echo "Odyssey dan op-node telah berjalan. Anda dapat memeriksa log untuk informasi lebih lanjut."
+# Menampilkan pesan selesai
+echo "Node Odyssey telah dijalankan di http://localhost:8545"
