@@ -82,9 +82,7 @@ download_and_setup() {
     wget "$DOWNLOAD_URL" -O heminetwork_linux_amd64.tar.gz
     TARGET_DIR="$HOME/heminetwork"
     mkdir -p "$TARGET_DIR"
-    tar -xvf heminetwork_linux_amd64.tar.gz -C "$TARGET_DIR"
-    mv "$TARGET_DIR/heminetwork_"* "$TARGET_DIR/"
-    rmdir "$TARGET_DIR/heminetwork_"*
+    tar -xzf heminetwork_linux_amd64.tar.gz -C "$TARGET_DIR" --strip-components=1
     cd "$TARGET_DIR"
     ./popmd --help
     ./keygen -secp256k1 -json -net="testnet" > ~/popm-address.json
