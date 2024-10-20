@@ -88,7 +88,8 @@ install_pm2() {
 
 # Fungsi 1: Mengunduh, mengekstrak, dan menjalankan perintah bantuan
 download_and_setup() {
-    wget https://github.com/hemilabs/heminetwork/releases/download/v0.4.3/heminetwork_v0.4.3_linux_amd64.tar.gz -O heminetwork_v0.4.3_linux_amd64.tar.gz
+    wget https://github.com/hemilabs/heminetwork/releases/download/vX.Y.Z/heminetwork_vX.Y.Z_linux_amd64.tar.gz -O heminetwork_vX.Y.Z_linux_amd64.tar.gz
+
 
     # Buat folder target (jika belum ada)
     TARGET_DIR="$HOME/heminetwork"
