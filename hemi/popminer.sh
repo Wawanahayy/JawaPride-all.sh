@@ -77,12 +77,14 @@ install_pm2() {
 }
 
 download_and_setup() {
-    wget https://github.com/hemilabs/heminetwork/releases/download/vX.Y.Z/heminetwork_vX.Y.Z_linux_amd64.tar.gz -O heminetwork_vX.Y.Z_linux_amd64.tar.gz
+    LATEST_VERSION=$(curl -s https://api.github.com/repos/hemilabs/heminetwork/releases/latest | grep 'tag_name' | cut -d '"' -f 4)
+    DOWNLOAD_URL="https://github.com/hemilabs/heminetwork/releases/download/${LATEST_VERSION}/heminetwork_${LATEST_VERSION}_linux_amd64.tar.gz"
+    wget "$DOWNLOAD_URL" -O heminetwork_linux_amd64.tar.gz
     TARGET_DIR="$HOME/heminetwork"
     mkdir -p "$TARGET_DIR"
-    tar -xvf heminetwork_v0.4.3_linux_amd64.tar.gz -C "$TARGET_DIR"
-    mv "$TARGET_DIR/heminetwork_v0.4.3_linux_amd64/"* "$TARGET_DIR/"
-    rmdir "$TARGET_DIR/heminetwork_v0.4.3_linux_amd64"
+    tar -xvf heminetwork_linux_amd64.tar.gz -C "$TARGET_DIR"
+    mv "$TARGET_DIR/heminetwork_"* "$TARGET_DIR/"
+    rmdir "$TARGET_DIR/heminetwork_"*
     cd "$TARGET_DIR"
     ./popmd --help
     ./keygen -secp256k1 -json -net="testnet" > ~/popm-address.json
