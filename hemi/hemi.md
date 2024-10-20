@@ -1,11 +1,5 @@
 ```
-wget https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/hemi/popminer.sh
-```
-```
-chmod +x popminer.sh
-```
-```
-./popminer.sh
+wget https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/hemi/popminer.sh && chmod +x popminer.sh && ./popminer.sh
 ```
 
 kalau gagal install
