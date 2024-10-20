@@ -92,11 +92,14 @@ setup_environment() {
     cd "$HOME/heminetwork"
     cat ~/popm-address.json
     POPM_BTC_PRIVKEY=$(jq -r '.private_key' ~/popm-address.json)
-    read -p "Cek nilai sats/vB di https://mempool.space/zh/testnet dan masukkan: " POPM_STATIC_FEE
+    POPM_STATIC_FEE=1000  # Ganti nilai fee di sini
+    echo "Menggunakan fee: $POPM_STATIC_FEE"
+    
     export POPM_BTC_PRIVKEY=$POPM_BTC_PRIVKEY
     export POPM_STATIC_FEE=$POPM_STATIC_FEE
     export POPM_BFG_URL=wss://testnet.rpc.hemi.network/v1/ws/public
 }
+
 
 start_popmd() {
     cd "$HOME/heminetwork"
