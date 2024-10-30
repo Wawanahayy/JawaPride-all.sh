@@ -17,9 +17,6 @@ print_colored() {
 print_colored "Menampilkan logo JWPA"
 sleep 1
 
-# Menjalankan loader.sh
-wget -O loader.sh https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/mesh.sh && chmod +x loader.sh && ./loader.sh
-
 # Memperbarui dan mengupgrade sistem
 apt update
 apt upgrade -y
