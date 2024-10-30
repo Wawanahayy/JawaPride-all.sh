@@ -20,7 +20,13 @@ sleep 5
 
 log() {
     local message=$1
-    local colors=( "31" "32" "33" "34" "35" "36" "37" ) # Deklarasi array warna di sini
+    local colors=( "31" "32" "33" "34" "35" "36" "37" )
+    
+    if [ ${#colors[@]} -eq 0 ]; then
+        echo "Error: No colors defined." >&2
+        return
+    fi
+
     local count=0
     while [ $count -lt 10 ]; do
         for color in "${colors[@]}"; do
@@ -68,13 +74,11 @@ read -p "Masukkan email BlockMesh Anda: " email
 read -s -p "Masukkan password BlockMesh Anda: " password
 echo ""
 
-# Deklarasi array warna di sini juga agar bisa digunakan di luar log
-colors=( "31" "32" "33" "34" "35" "36" "37" )
+colors=( "31" "32" "33" "34" "35" "36" "37" ) # Deklarasi array warna
 
 while true; do
-    # Pilih warna acak untuk pesan
-    random_color=${colors[RANDOM % ${#colors[@]}]}
+    random_color=${colors[RANDOM % ${#colors[@]}]} # Warna acak
     message="[INFO] Session Email: $email: Successfully submitted uptime report"
     log "$(print_colored $random_color "$message")"
-    sleep 30 
+    sleep $(( RANDOM % 9 + 23 )) 
 done
