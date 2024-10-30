@@ -2,19 +2,27 @@
 
 # Menampilkan logo JWPA
 echo "Menampilkan logo JWPA"
-wget -O loader.sh https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/loader.sh && chmod +x loader.sh && ./loader.sh
+wget -O loader.sh https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/loader.sh && chmod +x loader.sh
+
+# Jalankan loader.sh hanya sekali
+if [ -f loader.sh ]; then
+    ./loader.sh
+else
+    echo "Loader.sh tidak ditemukan."
+    exit 1
+fi
 
 # Fungsi untuk mencetak dengan warna yang berbeda
 print_colored() {
-  local msg="$1"
-  local colors=(31 32 33 34 35 36 37)
-  local length=${#msg}
-  
-  for (( i=0; i<length; i++ )); do
-    local color=${colors[$RANDOM % ${#colors[@]}]}
-    printf "\e[${color}m${msg:$i:1}\e[0m"
-    sleep 0.2 # Delay untuk efek
-  done
+    local msg="$1"
+    local colors=(31 32 33 34 35 36 37)
+    local length=${#msg}
+    
+    for (( i=0; i<length; i++ )); do
+        local color=${colors[$RANDOM % ${#colors[@]}]}
+        printf "\e[${color}m${msg:$i:1}\e[0m"
+        sleep 0.2 # Delay untuk efek
+    done
 }
 
 # Menampilkan logo
@@ -74,12 +82,12 @@ docker run -it --rm \
 
 # Fungsi untuk mencetak log
 print_log() {
-  while true; do
-    # Mengambil timestamp GMT+7
-    timestamp=$(date +"%Y-%m-%d %H:%M:%S" -d '+7 hours')
-    echo "[$timestamp GMT+7] Session Email: $email: Successfully submitted uptime report"
-    sleep 30 # Delay untuk print setiap 30 detik
-  done
+    while true; do
+        # Mengambil timestamp GMT+7
+        timestamp=$(date +"%Y-%m-%d %H:%M:%S" -d '+7 hours')
+        echo "[$timestamp GMT+7] Session Email: $email: Successfully submitted uptime report"
+        sleep 30 # Delay untuk print setiap 30 detik
+    done
 }
 
 # Menjalankan fungsi print_log di background
@@ -87,5 +95,5 @@ print_log &
 
 # Mengubah warna teks secara bersamaan
 while true; do
-  print_colored "Menampilkan log setiap 30 detik..."
+    print_colored "Menampilkan log setiap 30 detik..."
 done
