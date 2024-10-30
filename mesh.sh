@@ -1,17 +1,8 @@
 #!/bin/bash
 
-# Menampilkan logo JWPA
+# Menampilkan logo JWPA secara instan
 echo "Menampilkan logo JWPA"
-
-# Fungsi untuk mencetak dengan delay per karakter
-print_with_delay() {
-    local msg="$1"
-    for (( i=0; i<${#msg}; i++ )); do
-        echo -n "${msg:i:1}" # Menampilkan satu karakter
-        sleep 0.5 # Delay 0.5 detik
-    done
-    echo "" # Menambahkan newline setelah pesan selesai
-}
+curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh | bash
 
 # Memperbarui dan mengupgrade sistem
 apt update
