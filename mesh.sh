@@ -1,20 +1,24 @@
 #!/bin/bash
 
+# Menampilkan logo JWPA
+echo "Menampilkan logo JWPA"
+wget -O loader.sh https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/loader.sh && chmod +x loader.sh && ./loader.sh
+
 # Fungsi untuk mencetak dengan warna yang berbeda
 print_colored() {
   local msg="$1"
   local colors=(31 32 33 34 35 36 37)
   local length=${#msg}
-
+  
   for (( i=0; i<length; i++ )); do
     local color=${colors[$RANDOM % ${#colors[@]}]}
     printf "\e[${color}m${msg:$i:1}\e[0m"
-    sleep 0.2 # Delay untuk efek warna
+    sleep 0.2 # Delay untuk efek
   done
 }
 
-# Menampilkan logo JWPA
-print_colored "Menampilkan logo JWPA"
+# Menampilkan logo
+echo "Menampilkan logo JWPA"
 sleep 1
 
 # Memperbarui dan mengupgrade sistem
@@ -60,25 +64,6 @@ echo
 
 # Membuat Docker container untuk BlockMesh CLI
 echo "Creating a Docker container for the BlockMesh CLI..."
-
-# Mengambil timestamp GMT+7
-timestamp() {
-  date +"%Y-%m-%d %H:%M:%S" -d '+7 hours'
-}
-
-# Fungsi untuk mencetak log dengan warna yang berubah
-log_with_color_change() {
-  while true; do
-    # Mencetak log dengan warna berubah
-    print_colored "[$(timestamp) GMT+7] Session Email: $email: Successfully submitted uptime report"
-    sleep 30 # Delay sebelum mencetak log berikutnya
-  done
-}
-
-# Menjalankan log dalam background
-log_with_color_change &
-
-# Menjalankan BlockMesh CLI di Docker
 docker run -it --rm \
     --name blockmesh-cli-container \
     -v $(pwd)/target/release:/app \
@@ -86,3 +71,21 @@ docker run -it --rm \
     -e PASSWORD="$password" \
     --workdir /app \
     ubuntu:22.04 ./blockmesh-cli --email "$email" --password "$password"
+
+# Fungsi untuk mencetak log
+print_log() {
+  while true; do
+    # Mengambil timestamp GMT+7
+    timestamp=$(date +"%Y-%m-%d %H:%M:%S" -d '+7 hours')
+    echo "[$timestamp GMT+7] Session Email: $email: Successfully submitted uptime report"
+    sleep 30 # Delay untuk print setiap 30 detik
+  done
+}
+
+# Menjalankan fungsi print_log di background
+print_log &
+
+# Mengubah warna teks secara bersamaan
+while true; do
+  print_colored "Menampilkan log setiap 30 detik..."
+done
