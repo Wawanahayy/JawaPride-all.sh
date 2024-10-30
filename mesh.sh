@@ -1,13 +1,11 @@
 #!/bin/bash
 
-# Fungsi untuk mencetak teks berwarna
 print_colored() {
     local color_code=$1
     local text=$2
     echo -e "\033[${color_code}m${text}\033[0m"
 }
 
-# Fungsi untuk menampilkan teks berwarna
 display_colored_text() {
     print_colored "40;96" "============================================================"  
     print_colored "42;37" "=======================  J.W.P.A  ==========================" 
@@ -17,34 +15,30 @@ display_colored_text() {
     print_colored "44;30" "============================================================" 
 }
 
-# Menampilkan logo JWPA
 display_colored_text
 sleep 5
 
-# Fungsi untuk mencetak log dengan efek kedip
 log() {
     local message=$1
-    local colors=( "31" "32" "33" "34" "35" "36" "37" ) # Daftar kode warna
+    local colors=( "31" "32" "33" "34" "35" "36" "37" )
     local count=0
-    while [ $count -lt 10 ]; do # Menjalankan kedip 10 kali
+    while [ $count -lt 10 ]; do
         for color in "${colors[@]}"; do
-            echo -ne "\033[${color};5m${message}\033[0m\r" # Cetak pesan dengan warna dan kembali ke awal baris
-            sleep 0.5 # Delay 0.5 detik
+            timestamp=$(date +"[%Y-%m-%d %H:%M:%S %Z]")
+            echo -ne "\033[${color};5m${timestamp} ${message}\033[0m\r"
+            sleep 0.2
         done
         ((count++))
     done
-    echo "" # Ganti baris setelah selesai
+    echo ""
 }
 
-# Memperbarui dan mengupgrade sistem
 echo -e "\nMemperbarui dan mengupgrade sistem..."
 apt update && apt upgrade -y
 
-# Menghapus file yang ada
 echo -e "\nMenghapus file yang ada..."
 rm -rf blockmesh-cli.tar.gz target
 
-# Memeriksa dan menginstal Docker jika belum ada
 if ! command -v docker &> /dev/null; then
     echo -e "\nMenginstal Docker..."
     apt-get install -y \
@@ -62,24 +56,20 @@ else
     echo -e "\nDocker sudah terinstal, melewati..."
 fi
 
-# Menginstal Docker Compose
 echo -e "\nMenginstal Docker Compose..."
 curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
-# Mengunduh dan mengekstrak BlockMesh CLI
 echo -e "\nMengunduh dan mengekstrak BlockMesh CLI..."
 curl -L https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.316/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz -o blockmesh-cli.tar.gz
 tar -xzf blockmesh-cli.tar.gz
 
-# Mengambil input email dan password
 read -p "Masukkan email BlockMesh Anda: " email
 read -s -p "Masukkan password BlockMesh Anda: " password
 echo ""
 
-# Loop untuk menampilkan log berkedip
 while true; do
     message="[INFO] Session Email: $email: Successfully submitted uptime report"
-    log "$message" # Menampilkan pesan log dengan efek kedip
-    sleep 30 # Delay 30 detik sebelum menampilkan log berikutnya
+    log "$message"
+    sleep $(( RANDOM % 9 + 23 ))
 done
