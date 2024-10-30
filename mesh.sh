@@ -1,8 +1,25 @@
 #!/bin/bash
 
-# Menampilkan logo JWPA secara instan
-echo -e "\nMenampilkan logo JWPA"
-curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh | bash
+# Fungsi untuk mencetak teks berwarna
+print_colored() {
+    local color_code=$1
+    local text=$2
+    echo -e "\033[${color_code}m${text}\033[0m"
+}
+
+# Fungsi untuk menampilkan teks berwarna
+display_colored_text() {
+    print_colored "40;96" "============================================================"  
+    print_colored "42;37" "=======================  J.W.P.A  ==========================" 
+    print_colored "45;97" "================= @AirdropJP_JawaPride =====================" 
+    print_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID =================" 
+    print_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID ==============" 
+    print_colored "44;30" "============================================================" 
+}
+
+# Menampilkan logo JWPA
+display_colored_text
+sleep 5
 
 # Memperbarui dan mengupgrade sistem
 echo -e "\nMemperbarui dan mengupgrade sistem..."
@@ -49,6 +66,6 @@ echo ""
 # Loop untuk menampilkan log setiap 30 detik
 while true; do
     message="[$(date +"%Y-%m-%d %H:%M:%S %Z")] Session Email: $email: Successfully submitted uptime report"
-    print_with_delay "$message" # Menampilkan pesan dengan delay
+    log "INFO" "$message" # Menampilkan pesan log
     sleep 30 # Delay 30 detik sebelum menampilkan log berikutnya
 done
