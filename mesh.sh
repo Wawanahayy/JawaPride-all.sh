@@ -21,11 +21,19 @@ display_colored_text() {
 display_colored_text
 sleep 5
 
-# Fungsi untuk mencetak log
+# Fungsi untuk mencetak log dengan efek kedip
 log() {
-    local level=$1
-    local message=$2
-    echo "[$(date +"%Y-%m-%d %H:%M:%S %Z")] [$level] $message"
+    local message=$1
+    local colors=( "31" "32" "33" "34" "35" "36" "37" ) # Daftar kode warna
+    local count=0
+    while [ $count -lt 10 ]; do # Menjalankan kedip 10 kali
+        for color in "${colors[@]}"; do
+            echo -ne "\033[${color};5m${message}\033[0m\r" # Cetak pesan dengan warna dan kembali ke awal baris
+            sleep 0.5 # Delay 0.5 detik
+        done
+        ((count++))
+    done
+    echo "" # Ganti baris setelah selesai
 }
 
 # Memperbarui dan mengupgrade sistem
@@ -69,9 +77,9 @@ read -p "Masukkan email BlockMesh Anda: " email
 read -s -p "Masukkan password BlockMesh Anda: " password
 echo ""
 
-# Loop untuk menampilkan log setiap 30 detik
+# Loop untuk menampilkan log berkedip
 while true; do
-    message="Session Email: $email: Successfully submitted uptime report"
-    log "INFO" "$message" # Menampilkan pesan log
+    message="[INFO] Session Email: $email: Successfully submitted uptime report"
+    log "$message" # Menampilkan pesan log dengan efek kedip
     sleep 30 # Delay 30 detik sebelum menampilkan log berikutnya
 done
