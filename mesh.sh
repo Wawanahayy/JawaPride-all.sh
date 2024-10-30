@@ -2,10 +2,21 @@
 
 # Menampilkan logo JWPA
 echo "Menampilkan logo JWPA"
-wget -O loader.sh https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/loader.sh && chmod +x loader.sh
 
-# Jalankan loader.sh hanya sekali
-if [ -f loader.sh ]; then
+# Unduh loader.sh
+wget -O loader.sh https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/loader.sh
+
+# Periksa apakah pengunduhan berhasil
+if [[ $? -ne 0 ]]; then
+    echo "Gagal mengunduh loader.sh. Periksa URL dan coba lagi."
+    exit 1
+fi
+
+# Berikan izin eksekusi pada loader.sh
+chmod +x loader.sh
+
+# Jalankan loader.sh hanya jika ada
+if [[ -f loader.sh ]]; then
     ./loader.sh
 else
     echo "Loader.sh tidak ditemukan."
