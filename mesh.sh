@@ -69,7 +69,9 @@ read -s -p "Masukkan password BlockMesh Anda: " password
 echo ""
 
 while true; do
+    # Pilih warna acak untuk pesan
+    random_color=${colors[RANDOM % ${#colors[@]}]}
     message="[INFO] Session Email: $email: Successfully submitted uptime report"
-    log "$message"
-    sleep $(( RANDOM % 9 + 23 ))
+    log "$(print_colored $random_color "$message")"
+    sleep 30
 done
