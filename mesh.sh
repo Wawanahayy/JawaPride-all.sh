@@ -21,6 +21,13 @@ display_colored_text() {
 display_colored_text
 sleep 5
 
+# Fungsi untuk mencetak log
+log() {
+    local level=$1
+    local message=$2
+    echo "[$(date +"%Y-%m-%d %H:%M:%S %Z")] [$level] $message"
+}
+
 # Memperbarui dan mengupgrade sistem
 echo -e "\nMemperbarui dan mengupgrade sistem..."
 apt update && apt upgrade -y
@@ -30,8 +37,7 @@ echo -e "\nMenghapus file yang ada..."
 rm -rf blockmesh-cli.tar.gz target
 
 # Memeriksa dan menginstal Docker jika belum ada
-if ! command -v docker &> /dev/null
-then
+if ! command -v docker &> /dev/null; then
     echo -e "\nMenginstal Docker..."
     apt-get install -y \
         ca-certificates \
@@ -65,7 +71,7 @@ echo ""
 
 # Loop untuk menampilkan log setiap 30 detik
 while true; do
-    message="[$(date +"%Y-%m-%d %H:%M:%S %Z")] Session Email: $email: Successfully submitted uptime report"
+    message="Session Email: $email: Successfully submitted uptime report"
     log "INFO" "$message" # Menampilkan pesan log
     sleep 30 # Delay 30 detik sebelum menampilkan log berikutnya
 done
