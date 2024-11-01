@@ -1,40 +1,23 @@
 #!/bin/bash
 # Function to display messages
 show() {
-    echo "$1"
+    echo -e "$1"
 }
 
-# Function to display colorful text with a delay
-display_colored_text() {
-    local text=(
-        "============================================================"
-        "=======================  J.W.P.A  =========================="
-        "================= @AirdropJP_JawaPride ====================="
-        "=============== https://x.com/JAWAPRIDE_ID ================="
-        "============= https://linktr.ee/Jawa_Pride_ID =============="
-        "============================================================"
-    )
-
-    local colors=(
-        "\e[31m"  # Red
-        "\e[32m"  # Green
-        "\e[33m"  # Yellow
-        "\e[34m"  # Blue
-        "\e[35m"  # Magenta
-        "\e[36m"  # Cyan
-        "\e[37m"  # White
-    )
-
-    local end_time=$((SECONDS + 6))  # Set end time for 6 seconds
-
-    while [ $SECONDS -lt $end_time ]; do
-        for color in "${colors[@]}"; do
-            clear  # Clear the terminal
-            for line in "${text[@]}"; do
-                echo -e "${color}${line}\e[0m"  # Display text in color
-            done
-            sleep 0.2  # Wait for 0.2 seconds
+# Function to display colorful text
+display_info() {
+    local text="$1"
+    local delay=0.2
+    local colors=(31 32 33 34 35 36 37)  # Warna teks
+    local length=${#text}
+    
+    for (( i=0; i<6; i++ )); do
+        for (( j=0; j<length; j++ )); do
+            local color=${colors[$((RANDOM % ${#colors[@]}))]}
+            echo -ne "\e[${color}m${text:j:1}\e[0m"
+            sleep $delay
         done
+        echo
     done
 }
 
@@ -71,9 +54,6 @@ check_latest_version() {
 
 # Call the function to get the latest version
 check_latest_version
-
-# Display the colorful text
-display_colored_text
 
 # Detect the architecture before downloading binaries
 ARCH=$(uname -m)
@@ -123,10 +103,8 @@ fi
 
 # Set the service name
 SERVICE_NAME="blockmesh"
-
 # Reload systemd daemon before checking anything
 sudo systemctl daemon-reload
-
 # Check if the service exists
 if systemctl status "$SERVICE_NAME" > /dev/null 2>&1; then
     # If the service exists, check if it's running
@@ -149,14 +127,7 @@ if systemctl status "$SERVICE_NAME" > /dev/null 2>&1; then
         echo
     fi
 else
-    # If the service does not exist, inform the user about account creation
-    show "Service $SERVICE_NAME does not exist. Before proceeding, please ensure you have created an account at: https://app.blockmesh.xyz/register?invite_code=2ad3bf83-bf2c-477a-8440-b98784cc71d7"
-    read -p "Have you created an account? (yes/no): " account_created
-    if [ "$account_created" != "yes" ]; then
-        show "Please create an account before proceeding."
-        exit 1
-    fi
-    # Get the user's email and password
+    # Jika layanan tidak ada, langsung tanya email dan password
     read -p "Enter your email: " EMAIL
     read -s -p "Enter your password: " PASSWORD
     echo
@@ -180,17 +151,22 @@ WantedBy=multi-user.target
 EOL
 show "Service file created/updated at $SERVICE_FILE"
 
+# Display the information banner
+display_info "============================================================"
+display_info "=======================  J.W.P.A  =========================="
+display_info "================= @AirdropJP_JawaPride ====================="
+display_info "=============== https://x.com/JAWAPRIDE_ID ================="
+display_info "============= https://linktr.ee/Jawa_Pride_ID =============="
+display_info "============================================================"
+
 # Reload the systemd daemon to recognize the new service file
 sudo systemctl daemon-reload
-
 # Enable and start the service
 sudo systemctl enable "$SERVICE_NAME"
 sudo systemctl start "$SERVICE_NAME"
 show "Blockmesh service started."
-
 # Display real-time logs
 show "Displaying real-time logs. Press Ctrl+C to stop."
 journalctl -u "$SERVICE_NAME" -f
-
 # Exit the script after displaying logs
 exit 0
