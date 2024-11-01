@@ -25,7 +25,9 @@ display_colored_text() {
         "\e[37m"  # White
     )
 
-    for ((i=0; i<30; i++)); do  # Loop for 30 iterations (6 seconds total with 0.2 second delay)
+    local end_time=$((SECONDS + 6))  # Set end time for 6 seconds
+
+    while [ $SECONDS -lt $end_time ]; do
         for color in "${colors[@]}"; do
             clear  # Clear the terminal
             for line in "${text[@]}"; do
