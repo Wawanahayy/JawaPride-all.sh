@@ -1,24 +1,33 @@
 #!/bin/bash
 # Function to display messages
 show() {
-    echo -e "$1"
+    echo "$1"
 }
 
 # Function to display colorful text
 display_info() {
-    local text="$1"
+    local lines=(
+        "============================================================"
+        "=======================  J.W.P.A  =========================="
+        "================= @AirdropJP_JawaPride ====================="
+        "=============== https://x.com/JAWAPRIDE_ID ================="
+        "============= https://linktr.ee/Jawa_Pride_ID =============="
+        "============================================================"
+    )
+    
     local delay=0.2
     local colors=(31 32 33 34 35 36 37)  # Warna teks
-    local length=${#text}
-    
-    for (( i=0; i<6; i++ )); do
+
+    for line in "${lines[@]}"; do
+        local length=${#line}
         for (( j=0; j<length; j++ )); do
             local color=${colors[$((RANDOM % ${#colors[@]}))]}
-            echo -ne "\e[${color}m${text:j:1}\e[0m"
+            echo -ne "\e[${color}m${line:j:1}\e[0m"
             sleep $delay
         done
-        echo
+        echo  # Pindah ke baris berikutnya
     done
+    sleep 6  # Delay 6 detik setelah menampilkan semua baris
 }
 
 # Check if jq is installed
@@ -51,6 +60,9 @@ check_latest_version() {
     show "Failed to fetch the latest version after 3 attempts. Please check your internet connection or GitHub API limits."
     exit 1
 }
+
+# Call the function to display the information banner
+display_info
 
 # Call the function to get the latest version
 check_latest_version
@@ -103,8 +115,10 @@ fi
 
 # Set the service name
 SERVICE_NAME="blockmesh"
+
 # Reload systemd daemon before checking anything
 sudo systemctl daemon-reload
+
 # Check if the service exists
 if systemctl status "$SERVICE_NAME" > /dev/null 2>&1; then
     # If the service exists, check if it's running
@@ -127,7 +141,14 @@ if systemctl status "$SERVICE_NAME" > /dev/null 2>&1; then
         echo
     fi
 else
-    # Jika layanan tidak ada, langsung tanya email dan password
+    # If the service does not exist, inform the user about account creation
+    show "Service $SERVICE_NAME does not exist. Before proceeding, please ensure you have created an account at: https://app.blockmesh.xyz/register?invite_code=2ad3bf83-bf2c-477a-8440-b98784cc71d7"
+    read -p "Have you created an account? (yes/no): " account_created
+    if [ "$account_created" != "yes" ]; then
+        show "Please create an account before proceeding."
+        exit 1
+    fi
+    # Get the user's email and password
     read -p "Enter your email: " EMAIL
     read -s -p "Enter your password: " PASSWORD
     echo
@@ -149,24 +170,20 @@ Environment=PASSWORD=${PASSWORD}
 [Install]
 WantedBy=multi-user.target
 EOL
-show "Service file created/updated at $SERVICE_FILE"
 
-# Display the information banner
-display_info "============================================================"
-display_info "=======================  J.W.P.A  =========================="
-display_info "================= @AirdropJP_JawaPride ====================="
-display_info "=============== https://x.com/JAWAPRIDE_ID ================="
-display_info "============= https://linktr.ee/Jawa_Pride_ID =============="
-display_info "============================================================"
+show "Service file created/updated at $SERVICE_FILE"
 
 # Reload the systemd daemon to recognize the new service file
 sudo systemctl daemon-reload
+
 # Enable and start the service
 sudo systemctl enable "$SERVICE_NAME"
 sudo systemctl start "$SERVICE_NAME"
 show "Blockmesh service started."
+
 # Display real-time logs
 show "Displaying real-time logs. Press Ctrl+C to stop."
 journalctl -u "$SERVICE_NAME" -f
+
 # Exit the script after displaying logs
 exit 0
