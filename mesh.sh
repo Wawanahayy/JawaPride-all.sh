@@ -44,7 +44,6 @@ echo -ne "${MAGENTA}Enter a command number [0-7]:${RESET} "
 
 install_node() {
     echo -e "${YELLOW}To continue, please register at the following link:${RESET}"
-    echo -e "${CYAN}https://app.blockmesh.xyz/register?invite_code=DK${RESET}"
     echo -ne "${YELLOW}Have you completed registration? (y/n): ${RESET}"
     read registered
 
