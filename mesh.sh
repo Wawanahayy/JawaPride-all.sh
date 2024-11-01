@@ -1,191 +1,164 @@
 #!/bin/bash
-# Function to display messages
-show() {
-    echo "$1"
+
+# Color and icon definitions
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+MAGENTA='\033[0;35m'
+RESET='\033[0m'
+
+print_colored() {
+    local color_code=$1
+    local text=$2
+    echo -e "\033[${color_code}m${text}\033[0m"
 }
 
-# Function to display colorful text with a delay
 display_colored_text() {
-    local text=(
-        "============================================================"
-        "=======================  J.W.P.A  =========================="
-        "================= @AirdropJP_JawaPride ====================="
-        "=============== https://x.com/JAWAPRIDE_ID ================="
-        "============= https://linktr.ee/Jawa_Pride_ID =============="
-        "============================================================"
-    )
-
-    local colors=(
-        "\e[31m"  # Red
-        "\e[32m"  # Green
-        "\e[33m"  # Yellow
-        "\e[34m"  # Blue
-        "\e[35m"  # Magenta
-        "\e[36m"  # Cyan
-        "\e[37m"  # White
-    )
-
-    local end_time=$((SECONDS + 6))  # Set end time for 6 seconds
-
-    while [ $SECONDS -lt $end_time ]; do
-        for color in "${colors[@]}"; do
-            clear  # Clear the terminal
-            for line in "${text[@]}"; do
-                echo -e "${color}${line}\e[0m"  # Display text in color
-            done
-            sleep 0.2  # Wait for 0.2 seconds
-        done
-    done
+    print_colored "40;96" "============================================================"  
+    print_colored "42;37" "=======================  J.W.P.A  ==========================" 
+    print_colored "45;97" "================= @AirdropJP_JawaPride =====================" 
+    print_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID =================" 
+    print_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID ==============" 
+    print_colored "44;30" "============================================================" 
 }
 
-# Check if jq is installed
-if ! command -v jq &> /dev/null; then
-    show "jq not found, installing..."
-    sudo apt-get update
-    sudo apt-get install -y jq > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        show "Failed to install jq. Please check your package manager."
-        exit 1
-    fi
-fi
-
-# Function to get the latest version
-check_latest_version() {
-    local REPO_URL="https://api.github.com/repos/block-mesh/block-mesh-monorepo/releases/latest"
-    for i in {1..3}; do
-        LATEST_VERSION=$(curl -s "$REPO_URL" | jq -r '.tag_name')
-        if [ $? -ne 0 ]; then
-            show "curl failed. Please ensure curl is installed and working properly."
-            exit 1
-        fi
-        if [ -n "$LATEST_VERSION" ]; then
-            show "Latest version available: $LATEST_VERSION"
-            return 0
-        fi
-        show "Attempt $i: Failed to fetch the latest version. Retrying..."
-        sleep 2
-    done
-    show "Failed to fetch the latest version after 3 attempts. Please check your internet connection or GitHub API limits."
-    exit 1
+# Display main menu
+show_menu() {
+    clear
+    display_colored_text
+echo -e "    ${MAGENTA}Please choose an option:${RESET}"
+echo -e "    ${MAGENTA}1.${RESET} ${ICON_INSTALL}  Install Node"
+echo -e "    ${MAGENTA}2.${RESET} ${ICON_LOGS} View Logs"
+echo -e "    ${MAGENTA}3.${RESET} ${ICON_RESTART} Restart Node"
+echo -e "    ${MAGENTA}4.${RESET} ${ICON_STOP}  Stop Node"
+echo -e "    ${MAGENTA}5.${RESET} ${ICON_START}  Start Node"
+echo -e "    ${MAGENTA}6.${RESET} ${ICON_VIEW} View account"
+echo -e "    ${MAGENTA}7.${RESET} ${ICON_CHANGE_ACCOUNT} Change Account"
+echo -e "    ${MAGENTA}0.${RESET} ${ICON_EXIT} Exit"
+draw_bottom_border
+echo -ne "${MAGENTA}Enter a command number [0-7]:${RESET} "
+    read choice
 }
 
-# Call the function to display the information banner
-display_info
+install_node() {
+    echo -e "${YELLOW}To continue, please register at the following link:${RESET}"
+    echo -e "${CYAN}https://app.blockmesh.xyz/register?invite_code=DK${RESET}"
+    echo -ne "${YELLOW}Have you completed registration? (y/n): ${RESET}"
+    read registered
 
-# Call the function to get the latest version
-check_latest_version
-
-# Detect the architecture before downloading binaries
-ARCH=$(uname -m)
-if [ "$ARCH" = "x86_64" ]; then
-    DOWNLOAD_URL="https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.321/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz"
-elif [ "$ARCH" = "arm64" ]; then
-    show "Unsupported architecture: $ARCH"
-    exit 1
-else
-    show "Unsupported architecture: $ARCH"
-    exit 1
-fi
-
-# Create 'blockmesh' directory if it doesn't exist
-BLOCKMESH_DIR="$HOME/blockmesh"
-if [ ! -d "$BLOCKMESH_DIR" ]; then
-    show "Creating directory: $BLOCKMESH_DIR"
-    mkdir -p "$BLOCKMESH_DIR"
-    if [ $? -ne 0 ]; then
-        show "Failed to create directory $BLOCKMESH_DIR."
-        exit 1
+    if [[ "$registered" != "y" && "$registered" != "Y" ]]; then
+        echo -e "${RED}Please complete the registration and use referral code DK to continue.${RESET}"
+        read -p "Press Enter to return to the menu..."
+        return
     fi
-fi
 
-# Check if the current version matches the latest version
-CURRENT_VERSION=$(grep -oP '(?<=blockmesh_)[^/]*' "$BLOCKMESH_DIR/blockmesh-cli-x86_64-unknown-linux-gnu" 2>/dev/null)
-if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
-    # If not up to date, download the latest version
-    show "Downloading blockmesh-cli..."
-    curl -L "$DOWNLOAD_URL" -o "$BLOCKMESH_DIR/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz"
-    if [ $? -ne 0 ]; then
-        show "Failed to download file. Please check your internet connection."
-        exit 1
+    echo -e "${GREEN}🛠️  Installing node...${RESET}"
+    sudo apt update
+    if ! command -v docker &> /dev/null; then
+        sudo apt install docker.io -y
+        sudo systemctl start docker
+        sudo systemctl enable docker
     fi
-    show "Downloaded: $BLOCKMESH_DIR/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz"
-    # Extract the downloaded file into the 'blockmesh' folder
-    show "Extracting file..."
-    tar -xvzf "$BLOCKMESH_DIR/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -C "$BLOCKMESH_DIR" && rm "$BLOCKMESH_DIR/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz"
-    if [ $? -ne 0 ]; then
-        show "Failed to extract file."
-        exit 1
+    if ! command -v docker-compose &> /dev/null; then
+        sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
     fi
-    show "Extraction complete."
-else
-    show "You are already using the latest version: $LATEST_VERSION."
-fi
+    echo -ne "${YELLOW}Enter your email:${RESET} "
+    read USER_EMAIL
+    echo -ne "${YELLOW}Enter your password:${RESET} "
+    read USER_PASSWORD
+    echo "USER_EMAIL=${USER_EMAIL}" > .env
+    echo "USER_PASSWORD=${USER_PASSWORD}" >> .env
+    docker-compose up -d
+    echo -e "${GREEN}✅ Node installed successfully. Check the logs to confirm authentication.${RESET}"
+    read -p "Press Enter to return to the menu..."
+}
 
-# Set the service name
-SERVICE_NAME="blockmesh"
-
-# Reload systemd daemon before checking anything
-sudo systemctl daemon-reload
-
-# Check if the service exists
-if systemctl status "$SERVICE_NAME" > /dev/null 2>&1; then
-    # If the service exists, check if it's running
-    if systemctl is-active --quiet "$SERVICE_NAME"; then
-        sudo systemctl stop "$SERVICE_NAME"
-        sleep 5
-    fi
-    # Get existing email and password if available
-    EMAIL=$(systemctl show "$SERVICE_NAME" -p Environment | grep -oP '(?<=EMAIL=).*')
-    PASSWORD=$(systemctl show "$SERVICE_NAME" -p Environment | grep -oP '(?<=PASSWORD=).*')
-    # Ask if the user wants to update the email or password
-    read -p "Do you want to change your email? (yes/no): " change_email
-    if [ "$change_email" == "yes" ]; then
-        read -p "Enter your new email: " EMAIL
-    fi
-    read -s -p "Do you want to change your password? (yes/no): " change_password
+# View logs function
+view_logs() {
+    echo -e "${GREEN}📄 Viewing logs...${RESET}"
+    docker-compose logs
     echo
-    if [ "$change_password" == "yes" ]; then
-        read -s -p "Enter your new password: " PASSWORD
-        echo
-    fi
-else
-    # If the service does not exist, prompt for email and password directly
-    read -p "Enter your email: " EMAIL
-    read -s -p "Enter your password: " PASSWORD
-    echo
-fi
+    read -p "Press Enter to return to the menu..."
+}
 
+# Restart node function
+restart_node() {
+    echo -e "${GREEN}🔄 Restarting node...${RESET}"
+    docker-compose down
+    docker-compose up -d
+    echo -e "${GREEN}✅ Node restarted.${RESET}"
+    read -p "Press Enter to return to the menu..."
+}
 
-# Create or update the systemd service file
-SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME.service"
-cat <<EOL | sudo tee "$SERVICE_FILE"
-[Unit]
-Description=Blockmesh Service
-After=network.target
-[Service]
-Type=simple
-WorkingDirectory=$BLOCKMESH_DIR/target/x86_64-unknown-linux-gnu/release
-ExecStart=$BLOCKMESH_DIR/target/x86_64-unknown-linux-gnu/release/blockmesh-cli login --email '$EMAIL' --password '$PASSWORD'
-Restart=always
-Environment=EMAIL=${EMAIL}
-Environment=PASSWORD=${PASSWORD}
-[Install]
-WantedBy=multi-user.target
-EOL
+# Stop node function
+stop_node() {
+    echo -e "${GREEN}⏹️ Stopping node...${RESET}"
+    docker-compose down
+    echo -e "${GREEN}✅ Node stopped.${RESET}"
+    read -p "Press Enter to return to the menu..."
+}
 
-show "Service file created/updated at $SERVICE_FILE"
+# Start node function
+start_node() {
+    echo -e "${GREEN}▶️ Starting node...${RESET}"
+    docker-compose up -d
+    echo -e "${GREEN}✅ Node started.${RESET}"
+    read -p "Press Enter to return to the menu..."
+}
 
-# Reload the systemd daemon to recognize the new service file
-sudo systemctl daemon-reload
+# Change account function
+change_account() {
+    echo -e "${YELLOW}🔑 Changing account details...${RESET}"
+    echo -ne "${YELLOW}Enter new email:${RESET} "
+    read USER_EMAIL
+    echo -ne "${YELLOW}Enter new password:${RESET} "
+    read USER_PASSWORD
+    echo "USER_EMAIL=${USER_EMAIL}" > .env
+    echo "USER_PASSWORD=${USER_PASSWORD}" >> .env
+    echo -e "${GREEN}✅ Account details updated successfully.${RESET}"
+    read -p "Press Enter to return to the menu..."
+}
 
-# Enable and start the service
-sudo systemctl enable "$SERVICE_NAME"
-sudo systemctl start "$SERVICE_NAME"
-show "Blockmesh service started."
+сat_account(){
+    cat .env
+    read -p "Press Enter to return to the menu..."
+}
 
-# Display real-time logs
-show "Displaying real-time logs. Press Ctrl+C to stop."
-journalctl -u "$SERVICE_NAME" -f
-
-# Exit the script after displaying logs
-exit 0
+# Main menu loop
+while true; do
+    show_menu
+    case $choice in
+        1)
+            install_node
+            ;;
+        2)
+            view_logs
+            ;;
+        3)
+            restart_node
+            ;;
+        4)
+            stop_node
+            ;;
+        5)
+            start_node
+            ;;
+        6)
+            сat_account
+            ;;
+        7)
+            change_account
+            ;;
+        0)
+            echo -e "${GREEN}❌ Exiting...${RESET}"
+            exit 0
+            ;;
+        *)
+            echo -e "${RED}❌ Invalid input. Please try again.${RESET}"
+            read -p "Press Enter to continue..."
+            ;;
+    esac
+done
