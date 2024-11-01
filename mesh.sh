@@ -28,17 +28,16 @@ display_colored_text() {
 show_menu() {
     clear
     display_colored_text
-echo -e "    ${MAGENTA}Please choose an option:${RESET}"
-echo -e "    ${MAGENTA}1.${RESET} ${ICON_INSTALL}  Install Node"
-echo -e "    ${MAGENTA}2.${RESET} ${ICON_LOGS} View Logs"
-echo -e "    ${MAGENTA}3.${RESET} ${ICON_RESTART} Restart Node"
-echo -e "    ${MAGENTA}4.${RESET} ${ICON_STOP}  Stop Node"
-echo -e "    ${MAGENTA}5.${RESET} ${ICON_START}  Start Node"
-echo -e "    ${MAGENTA}6.${RESET} ${ICON_VIEW} View account"
-echo -e "    ${MAGENTA}7.${RESET} ${ICON_CHANGE_ACCOUNT} Change Account"
-echo -e "    ${MAGENTA}0.${RESET} ${ICON_EXIT} Exit"
-draw_bottom_border
-echo -ne "${MAGENTA}Enter a command number [0-7]:${RESET} "
+    echo -e "    ${MAGENTA}Please choose an option:${RESET}"
+    echo -e "    ${MAGENTA}1.${RESET} Install Node"
+    echo -e "    ${MAGENTA}2.${RESET} View Logs"
+    echo -e "    ${MAGENTA}3.${RESET} Restart Node"
+    echo -e "    ${MAGENTA}4.${RESET} Stop Node"
+    echo -e "    ${MAGENTA}5.${RESET} Start Node"
+    echo -e "    ${MAGENTA}6.${RESET} View Account"
+    echo -e "    ${MAGENTA}7.${RESET} Change Account"
+    echo -e "    ${MAGENTA}0.${RESET} Exit"
+    echo -ne "${MAGENTA}Enter a command number [0-7]:${RESET} "
     read choice
 }
 
@@ -54,23 +53,43 @@ install_node() {
     fi
 
     echo -e "${GREEN}🛠️  Installing node...${RESET}"
-    sudo apt update
+    sudo apt update || { echo -e "${RED}Failed to update packages.${RESET}"; return; }
+    
     if ! command -v docker &> /dev/null; then
-        sudo apt install docker.io -y
-        sudo systemctl start docker
+        if ! sudo apt install docker.io -y; then
+            echo -e "${RED}Failed to install Docker.${RESET}"
+            return
+        fi
+        sudo systemctl start docker || { echo -e "${RED}Failed to start Docker.${RESET}"; return; }
         sudo systemctl enable docker
     fi
+
     if ! command -v docker-compose &> /dev/null; then
-        sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        if ! sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose; then
+            echo -e "${RED}Failed to download Docker Compose.${RESET}"
+            return
+        fi
         sudo chmod +x /usr/local/bin/docker-compose
     fi
+
     echo -ne "${YELLOW}Enter your email:${RESET} "
     read USER_EMAIL
+    while ! [[ "$USER_EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; do
+        echo -ne "${RED}Invalid email format. Please enter a valid email:${RESET} "
+        read USER_EMAIL
+    done
+
     echo -ne "${YELLOW}Enter your password:${RESET} "
     read USER_PASSWORD
+    while [[ -z "$USER_PASSWORD" ]]; do
+        echo -ne "${RED}Password cannot be empty. Please enter a password:${RESET} "
+        read USER_PASSWORD
+    done
+
     echo "USER_EMAIL=${USER_EMAIL}" > .env
     echo "USER_PASSWORD=${USER_PASSWORD}" >> .env
-    docker-compose up -d
+    chmod 600 .env
+    docker-compose up -d || { echo -e "${RED}Failed to start Docker Compose.${RESET}"; return; }
     echo -e "${GREEN}✅ Node installed successfully. Check the logs to confirm authentication.${RESET}"
     read -p "Press Enter to return to the menu..."
 }
@@ -87,7 +106,7 @@ view_logs() {
 restart_node() {
     echo -e "${GREEN}🔄 Restarting node...${RESET}"
     docker-compose down
-    docker-compose up -d
+    docker-compose up -d || { echo -e "${RED}Failed to restart the node.${RESET}"; return; }
     echo -e "${GREEN}✅ Node restarted.${RESET}"
     read -p "Press Enter to return to the menu..."
 }
@@ -95,7 +114,7 @@ restart_node() {
 # Stop node function
 stop_node() {
     echo -e "${GREEN}⏹️ Stopping node...${RESET}"
-    docker-compose down
+    docker-compose down || { echo -e "${RED}Failed to stop the node.${RESET}"; return; }
     echo -e "${GREEN}✅ Node stopped.${RESET}"
     read -p "Press Enter to return to the menu..."
 }
@@ -103,7 +122,7 @@ stop_node() {
 # Start node function
 start_node() {
     echo -e "${GREEN}▶️ Starting node...${RESET}"
-    docker-compose up -d
+    docker-compose up -d || { echo -e "${RED}Failed to start the node.${RESET}"; return; }
     echo -e "${GREEN}✅ Node started.${RESET}"
     read -p "Press Enter to return to the menu..."
 }
@@ -113,15 +132,26 @@ change_account() {
     echo -e "${YELLOW}🔑 Changing account details...${RESET}"
     echo -ne "${YELLOW}Enter new email:${RESET} "
     read USER_EMAIL
+    while ! [[ "$USER_EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; do
+        echo -ne "${RED}Invalid email format. Please enter a valid email:${RESET} "
+        read USER_EMAIL
+    done
+
     echo -ne "${YELLOW}Enter new password:${RESET} "
     read USER_PASSWORD
+    while [[ -z "$USER_PASSWORD" ]]; do
+        echo -ne "${RED}Password cannot be empty. Please enter a password:${RESET} "
+        read USER_PASSWORD
+    done
+
     echo "USER_EMAIL=${USER_EMAIL}" > .env
     echo "USER_PASSWORD=${USER_PASSWORD}" >> .env
+    chmod 600 .env
     echo -e "${GREEN}✅ Account details updated successfully.${RESET}"
     read -p "Press Enter to return to the menu..."
 }
 
-сat_account(){
+cat_account() {
     cat .env
     read -p "Press Enter to return to the menu..."
 }
@@ -146,7 +176,7 @@ while true; do
             start_node
             ;;
         6)
-            сat_account
+            cat_account
             ;;
         7)
             change_account
