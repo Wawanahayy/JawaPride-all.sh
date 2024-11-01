@@ -4,9 +4,9 @@ show() {
     echo "$1"
 }
 
-# Function to display colorful text
-display_info() {
-    local lines=(
+# Function to display colorful text with a delay
+display_colored_text() {
+    local text=(
         "============================================================"
         "=======================  J.W.P.A  =========================="
         "================= @AirdropJP_JawaPride ====================="
@@ -14,20 +14,28 @@ display_info() {
         "============= https://linktr.ee/Jawa_Pride_ID =============="
         "============================================================"
     )
-    
-    local delay=0.2
-    local colors=(31 32 33 34 35 36 37)  # Warna teks
 
-    for line in "${lines[@]}"; do
-        local length=${#line}
-        for (( j=0; j<length; j++ )); do
-            local color=${colors[$((RANDOM % ${#colors[@]}))]}
-            echo -ne "\e[${color}m${line:j:1}\e[0m"
-            sleep $delay
+    local colors=(
+        "\e[31m"  # Red
+        "\e[32m"  # Green
+        "\e[33m"  # Yellow
+        "\e[34m"  # Blue
+        "\e[35m"  # Magenta
+        "\e[36m"  # Cyan
+        "\e[37m"  # White
+    )
+
+    local end_time=$((SECONDS + 6))  # Set end time for 6 seconds
+
+    while [ $SECONDS -lt $end_time ]; do
+        for color in "${colors[@]}"; do
+            clear  # Clear the terminal
+            for line in "${text[@]}"; do
+                echo -e "${color}${line}\e[0m"  # Display text in color
+            done
+            sleep 0.2  # Wait for 0.2 seconds
         done
-        echo  # Pindah ke baris berikutnya
     done
-    sleep 6  # Delay 6 detik setelah menampilkan semua baris
 }
 
 # Check if jq is installed
