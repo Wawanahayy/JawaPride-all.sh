@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Lokasi penyimpanan skrip
-SCRIPT_PATH="$HOME/Blockmesh.sh"
-LOG_FILE="$HOME/blockmesh/blockmesh.log"  # Lokasi file log
 
-# Membuat file log dan mengarahkan output
+SCRIPT_PATH="$HOME/Blockmesh.sh"
+LOG_FILE="$HOME/blockmesh/blockmesh.log" 
+
+
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 # Memeriksa apakah skrip dijalankan sebagai root
