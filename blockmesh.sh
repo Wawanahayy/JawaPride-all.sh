@@ -1,73 +1,3 @@
-#!/bin/bash
-
-SCRIPT_PATH="$HOME/Blockmesh.sh"
-LOG_FILE="$HOME/blockmesh/blockmesh.log"
-
-exec > >(tee -a "$LOG_FILE") 2>&1
-
-if [ "$(id -u)" != "0" ]; then
-    echo "Skrip ini harus dijalankan dengan hak akses root."
-    echo "Coba gunakan perintah 'sudo -i' untuk beralih ke pengguna root, lalu jalankan skrip ini lagi."
-    exit 1
-fi
-
-print_colored() {
-    local color_code=$1
-    local text=$2
-    echo -e "\e[${color_code}m${text}\e[0m"
-}
-
-display_colored_text() {
-    print_colored "40;96" "============================================================"
-    print_colored "42;37" "=======================  J.W.P.A  =========================="
-    print_colored "45;97" "================= @AirdropJP_JawaPride ====================="
-    print_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID ================="
-    print_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID =============="
-    print_colored "44;30" "============================================================"
-}
-
-print_timestamp() {
-    local now=$(date -u +"%Y-%m-%d %H:%M:%S")
-    local timezone_offset="+07:00"
-    local adjusted_time=$(date -d "$now$timezone_offset" +"%Y-%m-%d %H:%M:%S")
-    echo "Waktu saat ini (GMT+7): $adjusted_time"
-}
-
-function main_menu() {
-    while true; do
-        clear
-        display_colored_text
-        print_timestamp
-
-        echo "============================================================"
-        echo "USE screen -S blockmesh + TO EXIT CTRL A + D."
-        echo "TO back screen screen -r blockmesh."
-        echo "Welcome to Script with Jawa_Pride_ID:"
-        echo "============================================================"
-        echo "1. INSTALL OR LOGIN"
-        echo "2. CHECK Logs"
-        echo "3. CLOSE / Exit"
-        read -p "Masukkan opsi (1-3): " option
-
-        case $option in
-            1)
-                deploy_node
-                ;;
-            2)
-                view_logs
-                ;;
-            3)
-                echo "Keluar dari skrip."
-                exit 0
-                ;;
-            *)
-                echo "Opsi tidak valid, silakan masukkan lagi."
-                read -p "Tekan sembarang tombol untuk melanjutkan..."
-                ;;
-        esac
-    done
-}
-
 function deploy_node() {
     echo "Sedang memperbarui sistem..."
     sudo apt update -y && sudo apt upgrade -y
@@ -84,8 +14,9 @@ function deploy_node() {
     echo "Direktori dibuat: $BLOCKMESH_DIR"
 
     echo "Mengunduh blockmesh-cli..."
-    curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.325/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
+    curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.326/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
 
+    # Periksa apakah unduhan berhasil
     if [ ! -f "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" ]; then
         echo "Error: file blockmesh-cli tidak ditemukan, periksa URL."
         exit 1
@@ -93,6 +24,13 @@ function deploy_node() {
 
     echo "Ekstraksi blockmesh-cli..."
     tar -xzf "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" -C "$BLOCKMESH_DIR"
+    
+    # Periksa apakah file hasil ekstraksi ada
+    if [ ! -f "$BLOCKMESH_DIR/blockmesh-cli" ]; then
+        echo "Error: file blockmesh-cli tidak ditemukan setelah ekstraksi."
+        exit 1
+    fi
+
     rm "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
     echo "Unduhan dan ekstraksi blockmesh-cli selesai."
 
@@ -106,11 +44,6 @@ function deploy_node() {
     export BLOCKMESH_EMAIL
     export BLOCKMESH_PASSWORD
 
-    if [ ! -f "$BLOCKMESH_CLI_PATH" ]; then
-        echo "Error: file blockmesh-cli tidak ditemukan, periksa unduhan dan ekstraksi."
-        exit 1
-    fi
-
     chmod +x "$BLOCKMESH_CLI_PATH"
 
     echo "Berpindah direktori dan menjalankan ./blockmesh-cli..."
@@ -122,16 +55,3 @@ function deploy_node() {
 
     read -p "Tekan sembarang tombol untuk kembali ke menu utama / click any tombol or ENTER..."
 }
-
-function view_logs() {
-    LOG_FILE="$HOME/blockmesh/blockmesh.log"
-    if [ -f "$LOG_FILE" ]; then
-        echo "Menampilkan isi log:"
-        cat "$LOG_FILE"
-    else
-        echo "File log tidak ditemukan: $LOG_FILE"
-    fi
-    read -p "Tekan sembarang tombol untuk kembali ke menu utama / click any tombol or ENTER..."
-}
-
-main_menu
