@@ -90,7 +90,7 @@ fi
 # Prompt user for BlockMesh credentials
 read -p "Enter your BlockMesh email: " email
 read -s -p "Enter your BlockMesh password: " password
-echo ""
+echo ""  # untuk membuat baris baru setelah input password
 
 # Infinite loop to log uptime reports with success/error messages
 trap "echo 'Exiting...'; exit" SIGINT
