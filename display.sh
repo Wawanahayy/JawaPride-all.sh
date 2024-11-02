@@ -31,26 +31,28 @@ display_colored_text() {
     print_colored "44;30" "============================================================" 
 }
 
-# Fungsi untuk menampilkan waktu saat ini
-display_current_time() {
-    local current_time
-    current_time=$(TZ='Asia/Jakarta' date +"%Y-%m-%d %H:%M:%S")  # Mengatur zona waktu ke GMT+7
-    echo "Waktu saat ini (GMT+7): $current_time"
+# Fungsi untuk menampilkan timestamp
+print_timestamp() {
+    local now=$(date -u +"%Y-%m-%d %H:%M:%S")
+    local timezone_offset="+07:00"  # Offset untuk GMT+7
+    local adjusted_time=$(date -d "$now$timezone_offset" +"%Y-%m-%d %H:%M:%S")
+    echo "Waktu saat ini (GMT+7): $adjusted_time"
 }
 
-# Fungsi untuk menampilkan menu dan menangani input
-display_menu() {
+# Fungsi menu utama
+function main_menu() {
     while true; do
-        clear  # Membersihkan layar untuk tampilan yang bersih
-        display_colored_text  # Menampilkan teks berwarna
-        display_current_time   # Menampilkan waktu saat ini
+        clear
+        display_colored_text  # Menampilkan teks berwarna di menu utama
+        print_timestamp  # Menampilkan timestamp
 
         echo "================================================================"
+        echo "Untuk keluar dari skrip, tekan ctrl + C di keyboard."
         echo "Pilih operasi yang ingin dilakukan:"
         echo "1. Deploy Node"
         echo "2. Lihat Log"
         echo "3. Keluar"
-        echo
+
         read -p "Masukkan opsi (1-3): " option
 
         case $option in
@@ -69,7 +71,6 @@ display_menu() {
                 read -p "Tekan sembarang tombol untuk melanjutkan..."
                 ;;
         esac
-        sleep 1  # Delay 1 detik untuk mengurangi beban CPU
     done
 }
 
@@ -138,7 +139,7 @@ function deploy_node() {
 
 # Fungsi untuk melihat log
 function view_logs() {
-    LOG_FILE="$HOME/blockmesh/blockmesh.log"  # Menggunakan path lengkap
+    LOG_FILE="/root/blockmesh/blockmesh.log"  # Menggunakan path lengkap
     if [ -f "$LOG_FILE" ]; then
         echo "Menampilkan isi log:"
         cat "$LOG_FILE"  # Menampilkan isi log dengan perintah cat
@@ -149,4 +150,4 @@ function view_logs() {
 }
 
 # Memulai menu utama
-display_menu  # Menjalankan fungsi menu
+main_menu
