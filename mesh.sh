@@ -1,41 +1,40 @@
 #!/bin/bash
 
-# Lokasi penyimpanan skrip
-SCRIPT_PATH="$HOME/Blockmesh.sh"
-LOG_FILE="$HOME/blockmesh/blockmesh.log"  # Lokasi file log
-
-# Membuat file log dan mengarahkan output
-exec > >(tee -a "$LOG_FILE") 2>&1
-
-# Memeriksa apakah skrip dijalankan sebagai root
-if [ "$(id -u)" != "0" ]; then
-    echo "Skrip ini harus dijalankan dengan hak akses root."
-    echo "Coba gunakan perintah 'sudo -i' untuk beralih ke pengguna root, lalu jalankan skrip ini lagi."
-    exit 1
-fi
-
-# Fungsi untuk mencetak teks berwarna
 print_colored() {
     local color_code=$1
     local text=$2
-    echo -e "\e[${color_code}m${text}\e[0m"  # Menambahkan escape sequence untuk warna
+    echo -e "\e[${color_code}m${text}\e[0m"
 }
 
-# Fungsi untuk menampilkan teks berwarna
 display_colored_text() {
-    print_colored "40;96" "============================================================"  
-    print_colored "42;37" "=======================  J.W.P.A  ==========================" 
-    print_colored "45;97" "================= @AirdropJP_JawaPride =====================" 
-    print_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID =================" 
-    print_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID ==============" 
-    print_colored "44;30" "============================================================" 
+    local colors=("40;96" "42;37" "45;97" "43;30" "41;97" "44;30")  # Daftar kode warna
+    local blink_duration=5  # Durasi total perubahan warna dalam detik
+    local end_time=$((SECONDS + blink_duration))
+    
+    while [ $SECONDS -lt $end_time ]; do
+        for color in "${colors[@]}"; do
+            print_colored "$color" "============================================================"
+            print_colored "$color" "=======================  J.W.P.A  =========================="
+            print_colored "$color" "================= @AirdropJP_JawaPride ====================="
+            print_colored "$color" "=============== https://x.com/JAWAPRIDE_ID ================="
+            print_colored "$color" "============= https://linktr.ee/Jawa_Pride_ID =============="
+            print_colored "$color" "============================================================"
+            
+            # Menampilkan timestamp
+            local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+            print_colored "$color" "Timestamp: $timestamp"
+
+            sleep 0.5  # Delay sebelum mengganti warna
+            clear  # Menghapus tampilan untuk efek perubahan warna
+        done
+    done
 }
 
 # Fungsi menu utama
 function main_menu() {
     while true; do
         clear
-        display_colored_text  # Menampilkan teks berwarna di menu utama
+        display_colored_text  # Menampilkan teks berwarna
 
         echo "================================================================"
         echo "Untuk keluar dari skrip, tekan ctrl + C di keyboard."
