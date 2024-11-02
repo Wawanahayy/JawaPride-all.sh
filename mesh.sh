@@ -67,8 +67,9 @@ echo ""
 trap "echo 'Keluar...'; exit 0" SIGINT
 
 
+# Run the Docker container with the BlockMesh CLI
 echo "Membuat kontainer Docker untuk BlockMesh CLI..."
-docker run -i -t --rm \
+docker run --rm \
     --name blockmesh-cli-container \
     -v "$(pwd)/target/release:/app" \
     -e EMAIL="$email" \
