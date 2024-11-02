@@ -56,12 +56,12 @@ function main_menu() {
         echo "1. Deploy Node"
         echo "2. Lihat Log"
         echo "3. Keluar"
-
-        read -p "Masukkan opsi (1-3): " option
-
-        # Menampilkan waktu saat ini setelah input
+        
+        # Menampilkan waktu saat ini setelah menu
         CURRENT_TIME=$(TZ="Asia/Jakarta" date +"%Y-%m-%d %H:%M:%S")
         echo "Waktu saat ini (GMT+7): $CURRENT_TIME"
+
+        read -p "Masukkan opsi (1-3): " option
 
         case $option in
             1)
