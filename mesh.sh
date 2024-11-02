@@ -36,7 +36,7 @@ display_timestamp() {
     while true; do
         # Mendapatkan waktu saat ini dalam format GMT+7
         CURRENT_TIME=$(TZ="Asia/Jakarta" date +"%Y-%m-%d %H:%M:%S")
-        echo -ne "\rWaktu saat ini (GMT+7): $CURRENT_TIME"  # Memperbarui tampilan waktu
+        echo -ne "Waktu saat ini (GMT+7): $CURRENT_TIME\r"
         sleep 1  # Mengupdate setiap detik
     done
 }
@@ -51,15 +51,13 @@ function main_menu() {
         clear
         display_colored_text  # Menampilkan teks berwarna di menu utama
 
+        echo -ne "Waktu saat ini (GMT+7): $CURRENT_TIME\r"  # Menampilkan waktu terakhir yang diperbarui
         echo "================================================================"
+        echo "Untuk keluar dari skrip, tekan ctrl + C di keyboard."
         echo "Pilih operasi yang ingin dilakukan:"
         echo "1. Deploy Node"
         echo "2. Lihat Log"
         echo "3. Keluar"
-        
-        # Menampilkan waktu saat ini setelah menu
-        CURRENT_TIME=$(TZ="Asia/Jakarta" date +"%Y-%m-%d %H:%M:%S")
-        echo "Waktu saat ini (GMT+7): $CURRENT_TIME"
 
         read -p "Masukkan opsi (1-3): " option
 
@@ -148,7 +146,7 @@ function deploy_node() {
 
 # Fungsi untuk melihat log
 function view_logs() {
-    LOG_FILE="$HOME/blockmesh/blockmesh.log"  # Menggunakan path lengkap
+    LOG_FILE="/root/blockmesh/blockmesh.log"  # Menggunakan path lengkap
     if [ -f "$LOG_FILE" ]; then
         echo "Menampilkan isi log:"
         cat "$LOG_FILE"  # Menampilkan isi log dengan perintah cat
