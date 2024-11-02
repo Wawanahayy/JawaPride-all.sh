@@ -31,11 +31,11 @@ display_colored_text() {
     print_colored "44;30" "============================================================" 
 }
 
-# Fungsi untuk menampilkan waktu saat ini
+# Fungsi untuk menampilkan waktu saat ini (GMT+7)
 display_timestamp() {
-    # Mendapatkan waktu saat ini dalam format GMT+7
-    CURRENT_TIME=$(TZ="Asia/Jakarta" date +"%Y-%m-%d %H:%M:%S")
-    echo "Waktu saat ini (GMT+7): $CURRENT_TIME"
+    local current_time
+    current_time=$(TZ='Asia/Jakarta' date +"%Y-%m-%d %H:%M:%S")  # Mengatur zona waktu ke GMT+7
+    echo "Waktu saat ini (GMT+7): $current_time"
 }
 
 # Fungsi untuk menampilkan menu dan menangani input
@@ -43,7 +43,9 @@ display_menu() {
     while true; do
         clear  # Membersihkan layar untuk tampilan yang bersih
         display_colored_text  # Menampilkan teks berwarna di atas
-        display_timestamp  # Menampilkan waktu saat ini
+
+        # Menampilkan timestamp di bawah teks berwarna
+        display_timestamp
 
         echo "================================================================"
         echo "Pilih operasi yang ingin dilakukan:"
