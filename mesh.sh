@@ -66,7 +66,6 @@ echo ""
 # Menggunakan trap untuk menangkap Ctrl+C dan keluar dengan baik
 trap "echo 'Keluar...'; exit 0" SIGINT
 
-
 # Run the Docker container with the BlockMesh CLI
 echo "Membuat kontainer Docker untuk BlockMesh CLI..."
 docker run --rm \
