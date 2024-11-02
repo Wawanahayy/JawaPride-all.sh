@@ -18,40 +18,63 @@ display_colored_text() {
 display_colored_text
 sleep 5
 
+log() {
+    local message=$1
+    local colors=( "31" "32" "33" "34" "35" "36" "37" )
+    
+    local count=0
+    while [ $count -lt 10 ]; do
+        for color in "${colors[@]}"; do
+            timestamp=$(date +"[%Y-%m-%d %H:%M:%S %Z]")
+            echo -ne "\033[${color};5m${timestamp} ${message}\033[0m\r"
+            sleep 0.2
+        done
+        ((count++))
+    done
+    echo ""
+}
+
 echo -e "\nMemperbarui dan mengupgrade sistem..."
 apt update && apt upgrade -y
 
-echo -e "\nMenghapus file yang ada..."
+# Cleanup previous files
 rm -rf blockmesh-cli.tar.gz target
 
+# Install Docker if not installed
 if ! command -v docker &> /dev/null; then
-    echo -e "\nMenginstal Docker..."
+    echo "Menginstal Docker..."
     apt-get install -y \
         ca-certificates \
         curl \
         gnupg \
-        lsb-release || { echo "Instalasi Docker gagal"; exit 1; }
-    
+        lsb-release
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-    echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-      $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-    
-    apt-get update
-    apt-get install -y docker-ce docker-ce-cli containerd.io || { echo "Instalasi Docker gagal"; exit 1; }
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io
 else
-    echo -e "\nDocker sudah terinstal, melewati..."
+    echo "Docker sudah terinstal, melewati..."
 fi
 
-echo -e "\nMenginstal Docker Compose..."
+# Install Docker Compose
+echo "Menginstal Docker Compose..."
 curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
-echo -e "\nMengunduh dan mengekstrak BlockMesh CLI..."
-curl -L https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.316/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz -o blockmesh-cli.tar.gz
-tar -xzf blockmesh-cli.tar.gz
-rm blockmesh-cli.tar.gz  # Bersihkan file tar setelah ekstraksi
+# Create target directory for extraction
+mkdir -p target/release
 
+# Download and extract BlockMesh CLI
+echo "Mengunduh dan mengekstrak BlockMesh CLI..."
+curl -L https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.324/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz -o blockmesh-cli.tar.gz
+tar -xzf blockmesh-cli.tar.gz --strip-components=3 -C target/release
+
+# Verify extraction
+if [[ ! -f target/release/blockmesh-cli ]]; then
+    echo "Error: blockmesh-cli binary not found in target/release. Exiting..."
+    exit 1
+fi
+
+# Prompt for email and password
 read -p "Masukkan email BlockMesh Anda: " email
 read -s -p "Masukkan password BlockMesh Anda: " password
 echo ""
@@ -59,14 +82,19 @@ echo ""
 # Menggunakan trap untuk menangkap Ctrl+C dan keluar dengan baik
 trap "echo 'Keluar...'; exit 0" SIGINT
 
-# Membuat dan menjalankan kontainer Docker untuk BlockMesh CLI
-echo "Creating a Docker container for the BlockMesh CLI..."
-# Membuat dan menjalankan kontainer Docker untuk BlockMesh CLI
-echo "Creating a Docker container for the BlockMesh CLI..."
-docker run --rm \
+# Run the Docker container with the BlockMesh CLI
+echo "Membuat kontainer Docker untuk BlockMesh CLI..."
+docker run -it --rm \
     --name blockmesh-cli-container \
-    -v $(pwd)/target/release:/app \
+    -v "$(pwd)/target/release:/app" \
     -e EMAIL="$email" \
     -e PASSWORD="$password" \
     --workdir /app \
     ubuntu:22.04 ./blockmesh-cli --email "$email" --password "$password"
+
+# Loop untuk logging
+while true; do
+    message="[INFO] Session Email: $email: Successfully submitted uptime report"
+    log "$message"
+    sleep 1
+done
