@@ -14,26 +14,18 @@ if [ "$(id -u)" != "0" ]; then
     exit 1
 fi
 
-# Fungsi untuk menampilkan output berwarna dari curl
-function colored_curl() {
+# Fungsi untuk menampilkan output dari curl
+function display_content() {
     local url="https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh"
-    while IFS= read -r line; do
-        if [[ "$line" == *"Error"* ]]; then
-            echo -e "\e[31m$line\e[0m"  # Merah untuk Error
-        elif [[ "$line" == *"Success"* ]]; then
-            echo -e "\e[32m$line\e[0m"  # Hijau untuk Success
-        else
-            echo -e "\e[34m$line\e[0m"  # Biru untuk teks lainnya
-        fi
-    done < <(curl -s "$url")
+    curl -s "$url" | bash  # Eksekusi langsung dengan bash
 }
 
 # Fungsi menu utama
 function main_menu() {
     while true; do
         clear
-        # Menampilkan output berwarna dari display.sh
-        colored_curl
+        # Menampilkan output dari display.sh
+        display_content
 
         echo "================================================================"
         echo "Untuk keluar dari skrip, tekan ctrl + C di keyboard."
