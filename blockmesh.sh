@@ -39,13 +39,14 @@ function main_menu() {
         display_colored_text
         print_timestamp
 
-        echo "================================================================"
-        echo "Untuk keluar dari skrip, tekan ctrl + C di keyboard."
-        echo "Pilih operasi yang ingin dilakukan:"
-        echo "1. Deploy Node"
-        echo "2. Lihat Log"
-        echo "3. Keluar"
-
+        echo "============================================================"
+        echo "USE screen -S blockmesh + TO EXIT CTRL A + D."
+        echo "TO back screen screen -r blockmesh."
+        echo "Welcome to Script with Jawa_Pride_ID:"
+        echo "============================================================"
+        echo "1. INSTALL + LOGIN"
+        echo "2. CHECK Logs"
+        echo "3. CLOSE / Exit"
         read -p "Masukkan opsi (1-3): " option
 
         case $option in
