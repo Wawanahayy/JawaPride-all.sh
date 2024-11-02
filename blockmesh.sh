@@ -84,17 +84,10 @@ function deploy_node() {
     echo "Direktori dibuat: $BLOCKMESH_DIR"
 
     echo "Mengunduh blockmesh-cli..."
-    curl -L -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.326/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz"
+    curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.326/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
 
     echo "Ekstraksi blockmesh-cli..."
-    tar -xzf "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" -C "$BLOCKMESH_DIR" --strip-components=1
-
-    # Periksa apakah file hasil ekstraksi ada
-    if [ ! -f "$BLOCKMESH_DIR/blockmesh-cli" ]; then
-        echo "Error: file blockmesh-cli tidak ditemukan setelah ekstraksi."
-        exit 1
-    fi
-
+    tar -xzf "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" -C "$BLOCKMESH_DIR"
     rm "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
     echo "Unduhan dan ekstraksi blockmesh-cli selesai."
 
@@ -108,27 +101,32 @@ function deploy_node() {
     export BLOCKMESH_EMAIL
     export BLOCKMESH_PASSWORD
 
+    if [ ! -f "$BLOCKMESH_CLI_PATH" ]; then
+        echo "Error: file blockmesh-cli tidak ditemukan, periksa unduhan dan ekstraksi."
+        exit 1
+    fi
+
     chmod +x "$BLOCKMESH_CLI_PATH"
 
     echo "Berpindah direktori dan menjalankan ./blockmesh-cli..."
-    cd "$BLOCKMESH_DIR" || exit
+    cd "$BLOCKMESH_DIR"
 
     echo "Memulai blockmesh-cli..."
     ./blockmesh-cli --email "$BLOCKMESH_EMAIL" --password "$BLOCKMESH_PASSWORD" > "$LOG_FILE" 2>&1 &
     echo "Eksekusi skrip selesai."
 
-    read -p "Tekan sembarang tombol untuk kembali ke menu utama / click any tombol or ENTER..."
+    read -p "Tekan sembarang tombol untuk kembali ke menu utama..."
 }
 
 function view_logs() {
-    LOG_FILE="/root/blockmesh/blockmesh.log"
+    LOG_FILE="$HOME/blockmesh/blockmesh.log"
     if [ -f "$LOG_FILE" ]; then
         echo "Menampilkan isi log:"
         cat "$LOG_FILE"
     else
         echo "File log tidak ditemukan: $LOG_FILE"
     fi
-    read -p "Tekan sembarang tombol untuk kembali ke menu utama / click any tombol or ENTER..."
+    read -p "Tekan sembarang tombol untuk kembali ke menu utama..."
 }
 
 main_menu
