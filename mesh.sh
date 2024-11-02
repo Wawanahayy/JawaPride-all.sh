@@ -53,13 +53,16 @@ function main_menu() {
             1)
                 deploy_node
                 ;;
+
             2)
                 view_logs
                 ;;
+
             3)
                 echo "Keluar dari skrip."
                 exit 0
                 ;;
+
             *)
                 echo "Opsi tidak valid, silakan masukkan lagi."
                 read -p "Tekan sembarang tombol untuk melanjutkan..."
@@ -84,7 +87,7 @@ function deploy_node() {
     echo "Direktori dibuat: $BLOCKMESH_DIR"
 
     echo "Mengunduh blockmesh-cli..."
-    curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.326/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
+    curl -L -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.326/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz"
 
     echo "Ekstraksi blockmesh-cli..."
     tar -xzf "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" -C "$BLOCKMESH_DIR"
