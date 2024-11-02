@@ -86,14 +86,8 @@ function deploy_node() {
     echo "Mengunduh blockmesh-cli..."
     curl -L -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.326/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz"
 
-    # Periksa apakah unduhan berhasil
-    if [ ! -f "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" ]; then
-        echo "Error: file blockmesh-cli tidak ditemukan, periksa URL."
-        exit 1
-    fi
-
     echo "Ekstraksi blockmesh-cli..."
-    tar -xzf "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" -C "$BLOCKMESH_DIR"
+    tar -xzf "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" -C "$BLOCKMESH_DIR" --strip-components=1
 
     # Periksa apakah file hasil ekstraksi ada
     if [ ! -f "$BLOCKMESH_DIR/blockmesh-cli" ]; then
