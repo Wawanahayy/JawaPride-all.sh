@@ -124,7 +124,7 @@ function deploy_node() {
 
     # Menjalankan blockmesh-cli di direktori yang ditentukan
     echo "Memulai blockmesh-cli..."
-    if ! "$BLOCKMESH_CLI_PATH" --email "$BLOCKMESH_EMAIL" --password "$BLOCKMESH_PASSWORD" > "$LOG_FILE" 2>&1 &; then
+    if ! "$BLOCKMESH_CLI_PATH" --email "$BLOCKMESH_EMAIL" --password "$BLOCKMESH_PASSWORD" > "$LOG_FILE" 2>&1 & then
         echo "Error: Gagal memulai blockmesh-cli."
         exit 1
     fi
