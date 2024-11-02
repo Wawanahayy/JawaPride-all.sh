@@ -44,7 +44,7 @@ function main_menu() {
         echo "TO back screen screen -r blockmesh."
         echo "Welcome to Script with Jawa_Pride_ID:"
         echo "============================================================"
-        echo "1. INSTALL + LOGIN"
+        echo "1. INSTALL OR LOGIN"
         echo "2. CHECK Logs"
         echo "3. CLOSE / Exit"
         read -p "Masukkan opsi (1-3): " option
