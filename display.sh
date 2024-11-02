@@ -51,6 +51,9 @@ function main_menu() {
         clear
         display_colored_text  # Menampilkan teks berwarna di menu utama
 
+        # Menampilkan waktu saat ini di bagian atas
+        CURRENT_TIME=$(TZ="Asia/Jakarta" date +"%Y-%m-%d %H:%M:%S")
+        echo "Waktu saat ini (GMT+7): $CURRENT_TIME"
         echo "================================================================"
         echo "Pilih operasi yang ingin dilakukan:"
         echo "1. Deploy Node"
@@ -58,10 +61,6 @@ function main_menu() {
         echo "3. Keluar"
 
         read -p "Masukkan opsi (1-3): " option
-
-        # Menampilkan waktu saat ini setelah input
-        CURRENT_TIME=$(TZ="Asia/Jakarta" date +"%Y-%m-%d %H:%M:%S")
-        echo "Waktu saat ini (GMT+7): $CURRENT_TIME"
 
         case $option in
             1)
