@@ -18,22 +18,6 @@ display_colored_text() {
 display_colored_text
 sleep 5
 
-log() {
-    local message=$1
-    local colors=( "31" "32" "33" "34" "35" "36" "37" )
-    
-    local count=0
-    while [ $count -lt 10 ]; do
-        for color in "${colors[@]}"; do
-            timestamp=$(date +"[%Y-%m-%d %H:%M:%S %Z]")
-            echo -ne "\033[${color};5m${timestamp} ${message}\033[0m\r"
-            sleep 0.2
-        done
-        ((count++))
-    done
-    echo ""
-}
-
 echo -e "\nMemperbarui dan mengupgrade sistem..."
 apt update && apt upgrade -y
 
@@ -77,7 +61,7 @@ trap "echo 'Keluar...'; exit 0" SIGINT
 
 # Membuat dan menjalankan kontainer Docker untuk BlockMesh CLI
 echo "Creating a Docker container for the BlockMesh CLI..."
-docker run -it --rm \
+docker run --rm \
     --name blockmesh-cli-container \
     -v $(pwd)/target/release:/app \
     -e EMAIL="$email" \
@@ -85,8 +69,3 @@ docker run -it --rm \
     --workdir /app \
     ubuntu:22.04 ./blockmesh-cli --email "$email" --password "$password"
 
-while true; do
-    message="[INFO] Session Email: $email: Successfully submitted uptime report"
-    log "$message"
-    sleep 1
-done
