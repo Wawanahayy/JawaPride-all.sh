@@ -17,9 +17,23 @@ fi
 # Fungsi menu utama
 function main_menu() {
     while true; do
-        clear
-        # Menampilkan pesan dari display.sh menggunakan curl
-        curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh
+#!/bin/bash
+
+# Fungsi untuk mencetak teks berwarna
+print_colored() {
+    local color="$1"
+    local text="$2"
+    echo -e "\e[${color}m${text}\e[0m"
+}
+
+display_colored_text() {
+    print_colored "40;96" "============================================================"  
+    print_colored "42;37" "=======================  J.W.P.A  ==========================" 
+    print_colored "45;97" "================= @AirdropJP_JawaPride =====================" 
+    print_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID =================" 
+    print_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID ==============" 
+    print_colored "44;30" "============================================================" 
+}
 
         echo "================================================================"
         echo "Untuk keluar dari skrip, tekan ctrl + C di keyboard."
