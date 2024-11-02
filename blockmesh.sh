@@ -83,17 +83,20 @@ function deploy_node() {
     mkdir -p "$BLOCKMESH_DIR"
     echo "Direktori dibuat: $BLOCKMESH_DIR"
 
-echo "Mengunduh blockmesh-cli..."
-curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.325/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
+    echo "Mengunduh blockmesh-cli..."
+    curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.325/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
 
-
+    if [ ! -f "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" ]; then
+        echo "Error: file blockmesh-cli tidak ditemukan, periksa URL."
+        exit 1
+    fi
 
     echo "Ekstraksi blockmesh-cli..."
     tar -xzf "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" -C "$BLOCKMESH_DIR"
     rm "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
     echo "Unduhan dan ekstraksi blockmesh-cli selesai."
 
-    BLOCKMESH_CLI_PATH="$BLOCKMESH_DIR/target/x86_64-unknown-linux-gnu/release/blockmesh-cli"
+    BLOCKMESH_CLI_PATH="$BLOCKMESH_DIR/blockmesh-cli"
     echo "Path blockmesh-cli: $BLOCKMESH_CLI_PATH"
 
     read -p "Masukkan email BlockMesh Anda: " BLOCKMESH_EMAIL
@@ -111,7 +114,7 @@ curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.
     chmod +x "$BLOCKMESH_CLI_PATH"
 
     echo "Berpindah direktori dan menjalankan ./blockmesh-cli..."
-    cd /root/blockmesh/target/x86_64-unknown-linux-gnu/release
+    cd "$BLOCKMESH_DIR" || exit
 
     echo "Memulai blockmesh-cli..."
     ./blockmesh-cli --email "$BLOCKMESH_EMAIL" --password "$BLOCKMESH_PASSWORD" > "$LOG_FILE" 2>&1 &
@@ -121,7 +124,7 @@ curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.
 }
 
 function view_logs() {
-    LOG_FILE="/root/blockmesh/blockmesh.log"
+    LOG_FILE="$HOME/blockmesh/blockmesh.log"
     if [ -f "$LOG_FILE" ]; then
         echo "Menampilkan isi log:"
         cat "$LOG_FILE"
