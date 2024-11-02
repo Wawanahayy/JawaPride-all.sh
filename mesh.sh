@@ -14,18 +14,28 @@ if [ "$(id -u)" != "0" ]; then
     exit 1
 fi
 
-# Fungsi untuk menampilkan output dari curl
-function display_content() {
-    local url="https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh"
-    curl -s "$url" | bash  # Eksekusi langsung dengan bash
+# Fungsi untuk mencetak teks berwarna
+print_colored() {
+    local color_code=$1
+    local text=$2
+    echo -e "\e[${color_code}m${text}\e[0m"  # Menambahkan escape sequence untuk warna
+}
+
+# Fungsi untuk menampilkan teks berwarna
+display_colored_text() {
+    print_colored "40;96" "============================================================"  
+    print_colored "42;37" "=======================  J.W.P.A  ==========================" 
+    print_colored "45;97" "================= @AirdropJP_JawaPride =====================" 
+    print_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID =================" 
+    print_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID ==============" 
+    print_colored "44;30" "============================================================" 
 }
 
 # Fungsi menu utama
 function main_menu() {
     while true; do
         clear
-        # Menampilkan output dari display.sh
-        display_content
+        display_colored_text  # Menampilkan teks berwarna di menu utama
 
         echo "================================================================"
         echo "Untuk keluar dari skrip, tekan ctrl + C di keyboard."
