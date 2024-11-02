@@ -31,21 +31,27 @@ display_colored_text() {
     print_colored "44;30" "============================================================" 
 }
 
-# Fungsi untuk menampilkan timestamp
-print_timestamp() {
-    local now=$(date -u +"%Y-%m-%d %H:%M:%S")
-    local timezone_offset="+07:00"  # Offset untuk GMT+7
-    local adjusted_time=$(date -d "$now$timezone_offset" +"%Y-%m-%d %H:%M:%S")
-    echo "Waktu saat ini (GMT+7): $adjusted_time"
+# Fungsi untuk menampilkan waktu saat ini
+display_timestamp() {
+    while true; do
+        # Mendapatkan waktu saat ini dalam format GMT+7
+        CURRENT_TIME=$(TZ="Asia/Jakarta" date +"%Y-%m-%d %H:%M:%S")
+        echo -ne "Waktu saat ini (GMT+7): $CURRENT_TIME\r"
+        sleep 1  # Mengupdate setiap detik
+    done
 }
 
 # Fungsi menu utama
 function main_menu() {
+    # Menjalankan fungsi timestamp di background
+    display_timestamp & 
+    TIMESTAMP_PID=$!  # Menyimpan PID dari proses timestamp
+
     while true; do
         clear
         display_colored_text  # Menampilkan teks berwarna di menu utama
-        print_timestamp  # Menampilkan timestamp
 
+        echo -ne "Waktu saat ini (GMT+7): $CURRENT_TIME\r"  # Menampilkan waktu terakhir yang diperbarui
         echo "================================================================"
         echo "Untuk keluar dari skrip, tekan ctrl + C di keyboard."
         echo "Pilih operasi yang ingin dilakukan:"
@@ -64,6 +70,7 @@ function main_menu() {
                 ;;
             3)
                 echo "Keluar dari skrip."
+                kill $TIMESTAMP_PID  # Menghentikan proses timestamp
                 exit 0
                 ;;
             *)
