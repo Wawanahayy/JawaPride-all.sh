@@ -14,27 +14,27 @@ if [ "$(id -u)" != "0" ]; then
     exit 1
 fi
 
-# Fungsi untuk mencetak teks berwarna
-print_colored() {
-    local color="$1"
-    local text="$2"
-    echo -e "\e[${color}m${text}\e[0m"
-}
-
-display_colored_text() {
-    print_colored "40;96" "============================================================"  
-    print_colored "42;37" "=======================  J.W.P.A  ==========================" 
-    print_colored "45;97" "================= @AirdropJP_JawaPride =====================" 
-    print_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID =================" 
-    print_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID ==============" 
-    print_colored "44;30" "============================================================" 
+# Fungsi untuk menampilkan output berwarna dari curl
+function colored_curl() {
+    local url="https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh"
+    while IFS= read -r line; do
+        if [[ "$line" == *"Error"* ]]; then
+            echo -e "\e[31m$line\e[0m"  # Merah untuk Error
+        elif [[ "$line" == *"Success"* ]]; then
+            echo -e "\e[32m$line\e[0m"  # Hijau untuk Success
+        else
+            echo -e "\e[34m$line\e[0m"  # Biru untuk teks lainnya
+        fi
+    done < <(curl -s "$url")
 }
 
 # Fungsi menu utama
 function main_menu() {
     while true; do
         clear
-        display_colored_text
+        # Menampilkan output berwarna dari display.sh
+        colored_curl
+
         echo "================================================================"
         echo "Untuk keluar dari skrip, tekan ctrl + C di keyboard."
         echo "Pilih operasi yang ingin dilakukan:"
@@ -66,10 +66,7 @@ function main_menu() {
 # Fungsi untuk deploy node
 function deploy_node() {
     echo "Sedang memperbarui sistem..."
-    if ! sudo apt update -y && sudo apt upgrade -y; then
-        echo "Error: Gagal memperbarui sistem."
-        exit 1
-    fi
+    sudo apt update -y && sudo apt upgrade -y
 
     # Membuat direktori blockmesh
     BLOCKMESH_DIR="$HOME/blockmesh"
@@ -87,17 +84,11 @@ function deploy_node() {
 
     # Mengunduh blockmesh-cli
     echo "Mengunduh blockmesh-cli..."
-    if ! curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.324/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"; then
-        echo "Error: Gagal mengunduh blockmesh-cli."
-        exit 1
-    fi
+    curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.324/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
 
     # Ekstrak dan hapus arsip
     echo "Ekstraksi blockmesh-cli..."
-    if ! tar -xzf "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" -C "$BLOCKMESH_DIR"; then
-        echo "Error: Gagal mengekstrak blockmesh-cli."
-        exit 1
-    fi
+    tar -xzf "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" -C "$BLOCKMESH_DIR"
     rm "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
     echo "Unduhan dan ekstraksi blockmesh-cli selesai."
 
@@ -122,12 +113,13 @@ function deploy_node() {
 
     chmod +x "$BLOCKMESH_CLI_PATH"  # Memastikan file dapat dieksekusi
 
+    # Mengubah direktori dan menjalankan skrip
+    echo "Berpindah direktori dan menjalankan ./blockmesh-cli..."
+    cd /root/blockmesh/target/x86_64-unknown-linux-gnu/release
+
     # Menjalankan blockmesh-cli di direktori yang ditentukan
     echo "Memulai blockmesh-cli..."
-    if ! "$BLOCKMESH_CLI_PATH" --email "$BLOCKMESH_EMAIL" --password "$BLOCKMESH_PASSWORD" > "$LOG_FILE" 2>&1 & then
-        echo "Error: Gagal memulai blockmesh-cli."
-        exit 1
-    fi
+    ./blockmesh-cli --email "$BLOCKMESH_EMAIL" --password "$BLOCKMESH_PASSWORD" > "$LOG_FILE" 2>&1 &
     echo "Eksekusi skrip selesai."
 
     # Menunggu input dari pengguna untuk melanjutkan
@@ -136,6 +128,7 @@ function deploy_node() {
 
 # Fungsi untuk melihat log
 function view_logs() {
+    LOG_FILE="/root/blockmesh/blockmesh.log"  # Menggunakan path lengkap
     if [ -f "$LOG_FILE" ]; then
         echo "Menampilkan isi log:"
         cat "$LOG_FILE"  # Menampilkan isi log dengan perintah cat
