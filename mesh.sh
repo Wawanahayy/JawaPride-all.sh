@@ -1,20 +1,13 @@
 #!/bin/bash
 
-# Color and icon definitions
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-YELLOW='\033[1;33m'
-MAGENTA='\033[0;35m'
-RESET='\033[0m'
-
+# Function to print text in color
 print_colored() {
     local color_code=$1
     local text=$2
     echo -e "\033[${color_code}m${text}\033[0m"
 }
 
+# Function to display the banner with colored text
 display_colored_text() {
     print_colored "40;96" "============================================================"  
     print_colored "42;37" "=======================  J.W.P.A  ==========================" 
@@ -24,170 +17,90 @@ display_colored_text() {
     print_colored "44;30" "============================================================" 
 }
 
-# Display main menu
-show_menu() {
-    clear
-    display_colored_text
-    echo -e "    ${MAGENTA}Please choose an option:${RESET}"
-    echo -e "    ${MAGENTA}1.${RESET} Install Node"
-    echo -e "    ${MAGENTA}2.${RESET} View Logs"
-    echo -e "    ${MAGENTA}3.${RESET} Restart Node"
-    echo -e "    ${MAGENTA}4.${RESET} Stop Node"
-    echo -e "    ${MAGENTA}5.${RESET} Start Node"
-    echo -e "    ${MAGENTA}6.${RESET} View Account"
-    echo -e "    ${MAGENTA}7.${RESET} Change Account"
-    echo -e "    ${MAGENTA}0.${RESET} Exit"
-    echo -ne "${MAGENTA}Enter a command number [0-7]:${RESET} "
-    read choice
-}
+# Display the banner and pause for 5 seconds
+display_colored_text
+sleep 5
 
-install_node() {
-    echo -e "${YELLOW}To continue, please register at the following link:${RESET}"
-    echo -ne "${YELLOW}Have you completed registration? (y/n): ${RESET}"
-    read registered
-
-    if [[ "$registered" != "y" && "$registered" != "Y" ]]; then
-        echo -e "${RED}Please complete the registration and use referral code DK to continue.${RESET}"
-        read -p "Press Enter to return to the menu..."
-        return
-    fi
-
-    echo -e "${GREEN}🛠️  Installing node...${RESET}"
-    sudo apt update || { echo -e "${RED}Failed to update packages.${RESET}"; return; }
+# Function to log messages with a blinking effect in different colors
+log() {
+    local message=$1
+    local colors=("31" "32" "33" "34" "35" "36" "37")
     
-    if ! command -v docker &> /dev/null; then
-        if ! sudo apt install docker.io -y; then
-            echo -e "${RED}Failed to install Docker.${RESET}"
-            return
-        fi
-        sudo systemctl start docker || { echo -e "${RED}Failed to start Docker.${RESET}"; return; }
-        sudo systemctl enable docker
+    local count=0
+    while [ $count -lt 10 ]; do
+        for color in "${colors[@]}"; do
+            timestamp=$(date +"[%Y-%m-%d %H:%M:%S %Z]")
+            echo -ne "\033[${color};5m${timestamp} ${message}\033[0m\r"
+            sleep 0.2
+        done
+        ((count++))
+    done
+    echo ""
+}
+
+# Update and upgrade the system packages
+echo -e "\nUpdating and upgrading system..."
+if ! apt update && apt upgrade -y; then
+    echo "Failed to update and upgrade the system."
+    exit 1
+fi
+
+# Delete existing files if any
+echo -e "\nDeleting existing files..."
+rm -rf blockmesh-cli.tar.gz target || echo "Failed to delete existing files."
+
+# Install Docker if not installed
+if ! command -v docker &> /dev/null; then
+    echo -e "\nInstalling Docker..."
+    if ! apt-get install -y ca-certificates curl gnupg lsb-release; then
+        echo "Failed to install prerequisites for Docker."
+        exit 1
     fi
-
-    if ! command -v docker-compose &> /dev/null; then
-        if ! sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose; then
-            echo -e "${RED}Failed to download Docker Compose.${RESET}"
-            return
-        fi
-        sudo chmod +x /usr/local/bin/docker-compose
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+      $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    apt-get update
+    if ! apt-get install -y docker-ce docker-ce-cli containerd.io; then
+        echo "Docker installation failed."
+        exit 1
     fi
+else
+    echo -e "\nDocker already installed, skipping..."
+fi
 
-    echo -ne "${YELLOW}Enter your email:${RESET} "
-    read USER_EMAIL
-    while ! [[ "$USER_EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; do
-        echo -ne "${RED}Invalid email format. Please enter a valid email:${RESET} "
-        read USER_EMAIL
-    done
+# Install latest Docker Compose
+echo -e "\nInstalling latest Docker Compose..."
+compose_version=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
+if curl -L "https://github.com/docker/compose/releases/download/${compose_version}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose; then
+    chmod +x /usr/local/bin/docker-compose || echo "Failed to set executable permission for Docker Compose."
+else
+    echo "Failed to download Docker Compose."
+fi
 
-    echo -ne "${YELLOW}Enter your password:${RESET} "
-    read USER_PASSWORD
-    while [[ -z "$USER_PASSWORD" ]]; do
-        echo -ne "${RED}Password cannot be empty. Please enter a password:${RESET} "
-        read USER_PASSWORD
-    done
+# Fetch and extract the latest BlockMesh CLI
+echo -e "\nDownloading and extracting latest BlockMesh CLI..."
+blockmesh_version=$(curl -s https://api.github.com/repos/block-mesh/block-mesh-monorepo/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
+if curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/${blockmesh_version}/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o blockmesh-cli.tar.gz; then
+    tar -xzf blockmesh-cli.tar.gz || echo "Failed to extract BlockMesh CLI."
+else
+    echo "Failed to download BlockMesh CLI."
+fi
 
-    echo "USER_EMAIL=${USER_EMAIL}" > .env
-    echo "USER_PASSWORD=${USER_PASSWORD}" >> .env
-    chmod 600 .env
-    docker-compose up -d || { echo -e "${RED}Failed to start Docker Compose.${RESET}"; return; }
-    echo -e "${GREEN}✅ Node installed successfully. Check the logs to confirm authentication.${RESET}"
-    read -p "Press Enter to return to the menu..."
-}
+# Prompt user for BlockMesh credentials
+read -p "Enter your BlockMesh email: " email
+read -s -p "Enter your BlockMesh password: " password
+echo ""
 
-# View logs function
-view_logs() {
-    echo -e "${GREEN}📄 Viewing logs...${RESET}"
-    docker-compose logs
-    echo
-    read -p "Press Enter to return to the menu..."
-}
-
-# Restart node function
-restart_node() {
-    echo -e "${GREEN}🔄 Restarting node...${RESET}"
-    docker-compose down
-    docker-compose up -d || { echo -e "${RED}Failed to restart the node.${RESET}"; return; }
-    echo -e "${GREEN}✅ Node restarted.${RESET}"
-    read -p "Press Enter to return to the menu..."
-}
-
-# Stop node function
-stop_node() {
-    echo -e "${GREEN}⏹️ Stopping node...${RESET}"
-    docker-compose down || { echo -e "${RED}Failed to stop the node.${RESET}"; return; }
-    echo -e "${GREEN}✅ Node stopped.${RESET}"
-    read -p "Press Enter to return to the menu..."
-}
-
-# Start node function
-start_node() {
-    echo -e "${GREEN}▶️ Starting node...${RESET}"
-    docker-compose up -d || { echo -e "${RED}Failed to start the node.${RESET}"; return; }
-    echo -e "${GREEN}✅ Node started.${RESET}"
-    read -p "Press Enter to return to the menu..."
-}
-
-# Change account function
-change_account() {
-    echo -e "${YELLOW}🔑 Changing account details...${RESET}"
-    echo -ne "${YELLOW}Enter new email:${RESET} "
-    read USER_EMAIL
-    while ! [[ "$USER_EMAIL" =~ ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; do
-        echo -ne "${RED}Invalid email format. Please enter a valid email:${RESET} "
-        read USER_EMAIL
-    done
-
-    echo -ne "${YELLOW}Enter new password:${RESET} "
-    read USER_PASSWORD
-    while [[ -z "$USER_PASSWORD" ]]; do
-        echo -ne "${RED}Password cannot be empty. Please enter a password:${RESET} "
-        read USER_PASSWORD
-    done
-
-    echo "USER_EMAIL=${USER_EMAIL}" > .env
-    echo "USER_PASSWORD=${USER_PASSWORD}" >> .env
-    chmod 600 .env
-    echo -e "${GREEN}✅ Account details updated successfully.${RESET}"
-    read -p "Press Enter to return to the menu..."
-}
-
-cat_account() {
-    cat .env
-    read -p "Press Enter to return to the menu..."
-}
-
-# Main menu loop
+# Infinite loop to log uptime reports with success/error messages
+trap "echo 'Exiting...'; exit" SIGINT
 while true; do
-    show_menu
-    case $choice in
-        1)
-            install_node
-            ;;
-        2)
-            view_logs
-            ;;
-        3)
-            restart_node
-            ;;
-        4)
-            stop_node
-            ;;
-        5)
-            start_node
-            ;;
-        6)
-            cat_account
-            ;;
-        7)
-            change_account
-            ;;
-        0)
-            echo -e "${GREEN}❌ Exiting...${RESET}"
-            exit 0
-            ;;
-        *)
-            echo -e "${RED}❌ Invalid input. Please try again.${RESET}"
-            read -p "Press Enter to continue..."
-            ;;
-    esac
+    # Simulating a report submission (replace this with actual submission logic)
+    if true; then  # Replace 'true' with the actual command and check its success
+        message="[SUCCESS] Session Email: $email - Report submitted successfully."
+    else
+        message="[ERROR] Session Email: $email - Failed to submit report."
+    fi
+    log "$message"
+    sleep 1
 done
