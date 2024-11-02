@@ -31,7 +31,7 @@ display_colored_text() {
     print_colored "44;30" "============================================================" 
 }
 
-# Fungsi untuk menampilkan waktu saat ini (GMT+7)
+# Fungsi untuk menampilkan waktu saat ini (GMT+7) sekali
 display_timestamp() {
     local current_time
     current_time=$(TZ='Asia/Jakarta' date +"%Y-%m-%d %H:%M:%S")  # Mengatur zona waktu ke GMT+7
