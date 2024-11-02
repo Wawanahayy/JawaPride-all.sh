@@ -83,9 +83,10 @@ function deploy_node() {
     mkdir -p "$BLOCKMESH_DIR"
     echo "Direktori dibuat: $BLOCKMESH_DIR"
 
-    echo "Mengunduh blockmesh-cli..."
-    curl -L https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.325/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz -o blockmesh-cli.tar.gz
-    tar -xzf blockmesh-cli.tar.gz --strip-components=3 -C target/release"
+echo "Mengunduh blockmesh-cli..."
+curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.325/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
+
+
 
     echo "Ekstraksi blockmesh-cli..."
     tar -xzf "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" -C "$BLOCKMESH_DIR"
