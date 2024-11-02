@@ -115,7 +115,7 @@ function deploy_node() {
     ./blockmesh-cli --email "$BLOCKMESH_EMAIL" --password "$BLOCKMESH_PASSWORD" > "$LOG_FILE" 2>&1 &
     echo "Eksekusi skrip selesai."
 
-    read -p "Tekan sembarang tombol untuk kembali ke menu utama..."
+    read -p "Tekan sembarang tombol untuk kembali ke menu utama / click any tombol or ENTER..."
 }
 
 function view_logs() {
@@ -126,7 +126,7 @@ function view_logs() {
     else
         echo "File log tidak ditemukan: $LOG_FILE"
     fi
-    read -p "Tekan sembarang tombol untuk kembali ke menu utama..."
+    read -p "Tekan sembarang tombol untuk kembali ke menu utama / click any tombol or ENTER..."
 }
 
 main_menu
