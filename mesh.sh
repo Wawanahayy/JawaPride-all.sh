@@ -51,9 +51,12 @@ function main_menu() {
         clear
         display_colored_text  # Menampilkan teks berwarna di menu utama
 
-        echo -ne "Waktu saat ini (GMT+7): $CURRENT_TIME\r"  # Menampilkan waktu terakhir yang diperbarui
         echo "================================================================"
-        echo "Untuk keluar dari skrip, tekan ctrl + C di keyboard."
+        
+        # Mengupdate waktu terakhir yang diperbarui
+        echo -ne "Waktu saat ini (GMT+7): $CURRENT_TIME\r"
+        
+        # Menampilkan menu tanpa petunjuk keluar
         echo "Pilih operasi yang ingin dilakukan:"
         echo "1. Deploy Node"
         echo "2. Lihat Log"
