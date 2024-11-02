@@ -18,31 +18,27 @@ print_colored() {
 }
 
 display_colored_text() {
-    print_colored "40;96" "============================================================"  
-    print_colored "42;37" "=======================  J.W.P.A  ==========================" 
-    print_colored "45;97" "================= @AirdropJP_JawaPride =====================" 
-    print_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID =================" 
-    print_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID ==============" 
-    print_colored "44;30" "============================================================" 
+    print_colored "40;96" "============================================================"
+    print_colored "42;37" "=======================  J.W.P.A  =========================="
+    print_colored "45;97" "================= @AirdropJP_JawaPride ====================="
+    print_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID ================="
+    print_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID =============="
+    print_colored "44;30" "============================================================"
 }
 
-display_timestamp() {
-    while true; do
-        CURRENT_TIME=$(TZ="Asia/Jakarta" date +"%Y-%m-%d %H:%M:%S")
-        echo -ne "Waktu saat ini (GMT+7): $CURRENT_TIME\r"
-        sleep 1
-    done
+print_timestamp() {
+    local now=$(date -u +"%Y-%m-%d %H:%M:%S")
+    local timezone_offset="+07:00"
+    local adjusted_time=$(date -d "$now$timezone_offset" +"%Y-%m-%d %H:%M:%S")
+    echo "Waktu saat ini (GMT+7): $adjusted_time"
 }
 
 function main_menu() {
-    display_timestamp & 
-    TIMESTAMP_PID=$!
-
     while true; do
         clear
         display_colored_text
+        print_timestamp
 
-        echo -ne "Waktu saat ini (GMT+7): $CURRENT_TIME\r"
         echo "================================================================"
         echo "Untuk keluar dari skrip, tekan ctrl + C di keyboard."
         echo "Pilih operasi yang ingin dilakukan:"
@@ -61,7 +57,6 @@ function main_menu() {
                 ;;
             3)
                 echo "Keluar dari skrip."
-                kill $TIMESTAMP_PID
                 exit 0
                 ;;
             *)
