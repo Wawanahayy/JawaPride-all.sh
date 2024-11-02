@@ -1,32 +1,50 @@
 #!/bin/bash
 
+# Lokasi penyimpanan skrip
+SCRIPT_PATH="$HOME/Blockmesh.sh"
+LOG_FILE="$HOME/blockmesh/blockmesh.log"  # Lokasi file log
+
+# Membuat file log dan mengarahkan output
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+# Memeriksa apakah skrip dijalankan sebagai root
+if [ "$(id -u)" != "0" ]; then
+    echo "Skrip ini harus dijalankan dengan hak akses root."
+    echo "Coba gunakan perintah 'sudo -i' untuk beralih ke pengguna root, lalu jalankan skrip ini lagi."
+    exit 1
+fi
+
+# Fungsi untuk mencetak teks berwarna
 print_colored() {
     local color_code=$1
     local text=$2
-    echo -e "\e[${color_code}m${text}\e[0m"
+    echo -e "\e[${color_code}m${text}\e[0m"  # Menambahkan escape sequence untuk warna
 }
 
+# Fungsi untuk menampilkan teks berwarna
 display_colored_text() {
-    local colors=("40;96" "42;37" "45;97" "43;30" "41;97" "44;30")  # Daftar kode warna
-    local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
-    
-    for color in "${colors[@]}"; do
-        clear  # Membersihkan layar untuk efek kedip
-        print_colored "$color" "============================================================"
-        print_colored "$color" "=======================  J.W.P.A  =========================="
-        print_colored "$color" "================= @AirdropJP_JawaPride ====================="
-        print_colored "$color" "=============== https://x.com/JAWAPRIDE_ID ================="
-        print_colored "$color" "============= https://linktr.ee/Jawa_Pride_ID =============="
-        print_colored "$color" "============================================================"
-        print_colored "$color" "Timestamp: $timestamp"
-        sleep 0.5  # Delay sebelum mengganti warna
-    done
+    print_colored "40;96" "============================================================"  
+    print_colored "42;37" "=======================  J.W.P.A  ==========================" 
+    print_colored "45;97" "================= @AirdropJP_JawaPride =====================" 
+    print_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID =================" 
+    print_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID ==============" 
+    print_colored "44;30" "============================================================" 
+}
+
+# Fungsi untuk menampilkan timestamp
+print_timestamp() {
+    local now=$(date -u +"%Y-%m-%d %H:%M:%S")
+    local timezone_offset="+07:00"  # Offset untuk GMT+7
+    local adjusted_time=$(date -d "$now$timezone_offset" +"%Y-%m-%d %H:%M:%S")
+    echo "Waktu saat ini (GMT+7): $adjusted_time"
 }
 
 # Fungsi menu utama
 function main_menu() {
     while true; do
-        display_colored_text  # Menampilkan teks berwarna dengan efek kedip
+        clear
+        display_colored_text  # Menampilkan teks berwarna di menu utama
+        print_timestamp  # Menampilkan timestamp
 
         echo "================================================================"
         echo "Untuk keluar dari skrip, tekan ctrl + C di keyboard."
