@@ -36,30 +36,15 @@ display_timestamp() {
     while true; do
         # Mendapatkan waktu saat ini dalam format GMT+7
         CURRENT_TIME=$(TZ="Asia/Jakarta" date +"%Y-%m-%d %H:%M:%S")
-        echo -ne "\rWaktu saat ini (GMT+7): $CURRENT_TIME"  # Memperbarui tampilan waktu
-        sleep 1  # Mengupdate setiap detik
-    done
-}
-
-# Fungsi menu utama
-function main_menu() {
-    # Menjalankan fungsi timestamp di background
-    display_timestamp & 
-    TIMESTAMP_PID=$!  # Menyimpan PID dari proses timestamp
-
-    while true; do
-        clear
-        display_colored_text  # Menampilkan teks berwarna di menu utama
-
-        # Menampilkan waktu saat ini di bagian atas
-        CURRENT_TIME=$(TZ="Asia/Jakarta" date +"%Y-%m-%d %H:%M:%S")
-        echo "Waktu saat ini (GMT+7): $CURRENT_TIME"
+        clear  # Membersihkan layar untuk tampilan yang bersih
+        display_colored_text  # Menampilkan teks berwarna di atas
+        echo "Waktu saat ini (GMT+7): $CURRENT_TIME"  # Menampilkan waktu saat ini
         echo "================================================================"
         echo "Pilih operasi yang ingin dilakukan:"
         echo "1. Deploy Node"
         echo "2. Lihat Log"
         echo "3. Keluar"
-
+        echo
         read -p "Masukkan opsi (1-3): " option
 
         case $option in
@@ -71,7 +56,6 @@ function main_menu() {
                 ;;
             3)
                 echo "Keluar dari skrip."
-                kill $TIMESTAMP_PID  # Menghentikan proses timestamp
                 exit 0
                 ;;
             *)
@@ -79,6 +63,7 @@ function main_menu() {
                 read -p "Tekan sembarang tombol untuk melanjutkan..."
                 ;;
         esac
+        sleep 1  # Delay 1 detik untuk mengurangi beban CPU
     done
 }
 
@@ -158,4 +143,4 @@ function view_logs() {
 }
 
 # Memulai menu utama
-main_menu
+display_timestamp  # Menjalankan fungsi timestamp
