@@ -1,9 +1,7 @@
 #!/bin/bash
 
-
 SCRIPT_PATH="$HOME/Blockmesh.sh"
 LOG_FILE="$HOME/blockmesh/blockmesh.log" 
-
 
 exec > >(tee -a "$LOG_FILE") 2>&1
 
@@ -31,20 +29,11 @@ display_colored_text() {
     print_colored "44;30" "============================================================" 
 }
 
-# Fungsi untuk menampilkan timestamp
-print_timestamp() {
-    local now=$(date -u +"%Y-%m-%d %H:%M:%S")
-    local timezone_offset="+07:00"  # Offset untuk GMT+7
-    local adjusted_time=$(date -d "$now$timezone_offset" +"%Y-%m-%d %H:%M:%S")
-    echo "Waktu saat ini (GMT+7): $adjusted_time"
-}
-
 # Fungsi menu utama
 function main_menu() {
     while true; do
         clear
         display_colored_text  # Menampilkan teks berwarna di menu utama
-        print_timestamp  # Menampilkan timestamp
 
         echo "================================================================"
         echo "Untuk keluar dari skrip, tekan ctrl + C di keyboard."
