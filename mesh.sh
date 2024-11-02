@@ -1,87 +1,82 @@
 #!/bin/bash
 
-# Fungsi untuk mencetak dengan warna yang berbeda
 print_colored() {
-  local msg="$1"
-  local colors=(31 32 33 34 35 36 37)
-  local length=${#msg}
-
-  for (( i=0; i<length; i++ )); do
-    local color=${colors[$RANDOM % ${#colors[@]}]}
-    printf "\e[${color}m${msg:$i:1}\e[0m"
-    sleep 0.2 # Delay untuk efek warna
-  done
+    local color_code=$1
+    local text=$2
+    echo -e "\033[${color_code}m${text}\033[0m"
 }
 
-# Menampilkan logo JWPA
-print_colored "Menampilkan logo JWPA"
-sleep 1
+display_colored_text() {
+    print_colored "40;96" "============================================================"  
+    print_colored "42;37" "=======================  J.W.P.A  ==========================" 
+    print_colored "45;97" "================= @AirdropJP_JawaPride =====================" 
+    print_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID =================" 
+    print_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID ==============" 
+    print_colored "44;30" "============================================================" 
+}
 
-# Menjalankan loader.sh
-wget -O loader.sh https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/loader.sh && chmod +x loader.sh && ./loader.sh
+display_colored_text
+sleep 5
 
-# Memperbarui dan mengupgrade sistem
-apt update
-apt upgrade -y
+log() {
+    local message=$1
+    local colors=( "31" "32" "33" "34" "35" "36" "37" )
+    
+    local count=0
+    while [ $count -lt 10 ]; do
+        for color in "${colors[@]}"; do
+            timestamp=$(date +"[%Y-%m-%d %H:%M:%S %Z]")
+            echo -ne "\033[${color};5m${timestamp} ${message}\033[0m\r"
+            sleep 0.2
+        done
+        ((count++))
+    done
+    echo ""
+}
 
-# Menghapus file yang ada
+echo -e "\nMemperbarui dan mengupgrade sistem..."
+apt update && apt upgrade -y
+
+echo -e "\nMenghapus file yang ada..."
 rm -rf blockmesh-cli.tar.gz target
 
-# Memeriksa dan menginstal Docker jika belum ada
-if ! command -v docker &> /dev/null
-then
-    echo "Installing Docker..."
+if ! command -v docker &> /dev/null; then
+    echo -e "\nMenginstal Docker..."
     apt-get install -y \
         ca-certificates \
         curl \
         gnupg \
-        lsb-release
+        lsb-release || { echo "Instalasi Docker gagal"; exit 1; }
+    
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
     echo \
       "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
       $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    
     apt-get update
-    apt-get install -y docker-ce docker-ce-cli containerd.io
+    apt-get install -y docker-ce docker-ce-cli containerd.io || { echo "Instalasi Docker gagal"; exit 1; }
 else
-    echo "Docker is already installed, skipping..."
+    echo -e "\nDocker sudah terinstal, melewati..."
 fi
 
-# Menginstal Docker Compose
-echo "Installing Docker Compose..."
+echo -e "\nMenginstal Docker Compose..."
 curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 
-# Mengunduh dan mengekstrak BlockMesh CLI
-echo "Downloading and extracting BlockMesh CLI..."
+echo -e "\nMengunduh dan mengekstrak BlockMesh CLI..."
 curl -L https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.316/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz -o blockmesh-cli.tar.gz
 tar -xzf blockmesh-cli.tar.gz
+rm blockmesh-cli.tar.gz  # Bersihkan file tar setelah ekstraksi
 
-# Mengambil input email dan password
-read -p "Enter your BlockMesh email: " email
-read -s -p "Enter your BlockMesh password: " password
-echo
+read -p "Masukkan email BlockMesh Anda: " email
+read -s -p "Masukkan password BlockMesh Anda: " password
+echo ""
 
-# Membuat Docker container untuk BlockMesh CLI
+# Menggunakan trap untuk menangkap Ctrl+C dan keluar dengan baik
+trap "echo 'Keluar...'; exit 0" SIGINT
+
+# Membuat dan menjalankan kontainer Docker untuk BlockMesh CLI
 echo "Creating a Docker container for the BlockMesh CLI..."
-
-# Mengambil timestamp GMT+7
-timestamp() {
-  date +"%Y-%m-%d %H:%M:%S" -d '+7 hours'
-}
-
-# Fungsi untuk mencetak log dengan warna yang berubah
-log_with_color_change() {
-  while true; do
-    # Mencetak log dengan warna berubah
-    print_colored "[$(timestamp) GMT+7] Session Email: $email: Successfully submitted uptime report"
-    sleep 30 # Delay sebelum mencetak log berikutnya
-  done
-}
-
-# Menjalankan log dalam background
-log_with_color_change &
-
-# Menjalankan BlockMesh CLI di Docker
 docker run -it --rm \
     --name blockmesh-cli-container \
     -v $(pwd)/target/release:/app \
@@ -89,3 +84,9 @@ docker run -it --rm \
     -e PASSWORD="$password" \
     --workdir /app \
     ubuntu:22.04 ./blockmesh-cli --email "$email" --password "$password"
+
+while true; do
+    message="[INFO] Session Email: $email: Successfully submitted uptime report"
+    log "$message"
+    sleep 1
+done
