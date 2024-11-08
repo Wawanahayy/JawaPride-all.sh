@@ -2,21 +2,19 @@
 
 SCRIPT_PATH="$HOME/Blockmesh.sh"
 LOG_FILE="$HOME/blockmesh/blockmesh.log"
+BLOCKMESH_DIR="$HOME/blockmesh"
+BLOCKMESH_CLI_PATH="$BLOCKMESH_DIR/target/x86_64-unknown-linux-gnu/release/blockmesh-cli"
 
 exec > >(tee -a "$LOG_FILE") 2>&1
 
-if [ "$(id -u)" != "0" ]; then
-    echo "Skrip ini harus dijalankan dengan hak akses root."
-    echo "Coba gunakan perintah 'sudo -i' untuk beralih ke pengguna root, lalu jalankan skrip ini lagi."
-    exit 1
-fi
-
+# Fungsi untuk mencetak teks berwarna
 print_colored() {
     local color_code=$1
     local text=$2
     echo -e "\e[${color_code}m${text}\e[0m"
 }
 
+# Fungsi untuk menampilkan teks warna di header
 display_colored_text() {
     print_colored "40;96" "============================================================"
     print_colored "42;37" "=======================  J.W.P.A  =========================="
@@ -26,6 +24,7 @@ display_colored_text() {
     print_colored "44;30" "============================================================"
 }
 
+# Fungsi untuk menampilkan timestamp
 print_timestamp() {
     local now=$(date -u +"%Y-%m-%d %H:%M:%S")
     local timezone_offset="+07:00"
@@ -33,6 +32,7 @@ print_timestamp() {
     echo "Waktu saat ini (GMT+7): $adjusted_time"
 }
 
+# Fungsi untuk menu utama
 function main_menu() {
     while true; do
         clear
@@ -68,12 +68,10 @@ function main_menu() {
     done
 }
 
+# Fungsi untuk instalasi dan login Blockmesh
 function deploy_node() {
     echo "Sedang memperbarui sistem..."
     sudo apt update -y && sudo apt upgrade -y
-
-    BLOCKMESH_DIR="$HOME/blockmesh"
-    LOG_FILE="$BLOCKMESH_DIR/blockmesh.log"
 
     if [ -d "$BLOCKMESH_DIR" ]; then
         echo "Direktori $BLOCKMESH_DIR sudah ada, sedang menghapusnya..."
@@ -83,15 +81,14 @@ function deploy_node() {
     mkdir -p "$BLOCKMESH_DIR"
     echo "Direktori dibuat: $BLOCKMESH_DIR"
 
-    echo "Mengunduh blockmesh-cli..."
-    curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.326/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
+    echo "Mengunduh blockmesh-cli versi 0.0.348..."
+    curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.348/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
 
     echo "Ekstraksi blockmesh-cli..."
     tar -xzf "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" -C "$BLOCKMESH_DIR"
     rm "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
     echo "Unduhan dan ekstraksi blockmesh-cli selesai."
 
-    BLOCKMESH_CLI_PATH="$BLOCKMESH_DIR/target/x86_64-unknown-linux-gnu/release/blockmesh-cli"
     echo "Path blockmesh-cli: $BLOCKMESH_CLI_PATH"
 
     read -p "Masukkan email BlockMesh Anda: " BLOCKMESH_EMAIL
@@ -109,17 +106,18 @@ function deploy_node() {
     chmod +x "$BLOCKMESH_CLI_PATH"
 
     echo "Berpindah direktori dan menjalankan ./blockmesh-cli..."
-    cd /root/blockmesh/target/x86_64-unknown-linux-gnu/release
+    cd "$BLOCKMESH_DIR/target/x86_64-unknown-linux-gnu/release"
 
     echo "Memulai blockmesh-cli..."
     ./blockmesh-cli --email "$BLOCKMESH_EMAIL" --password "$BLOCKMESH_PASSWORD" > "$LOG_FILE" 2>&1 &
+
     echo "Eksekusi skrip selesai."
 
     read -p "Tekan sembarang tombol untuk kembali ke menu utama / click any tombol or ENTER..."
 }
 
+# Fungsi untuk melihat log
 function view_logs() {
-    LOG_FILE="/root/blockmesh/blockmesh.log"
     if [ -f "$LOG_FILE" ]; then
         echo "Menampilkan isi log:"
         cat "$LOG_FILE"
@@ -129,4 +127,5 @@ function view_logs() {
     read -p "Tekan sembarang tombol untuk kembali ke menu utama / click any tombol or ENTER..."
 }
 
+# Jalankan menu utama
 main_menu
