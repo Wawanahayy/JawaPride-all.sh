@@ -22,7 +22,7 @@ def loading_step():
     url = "https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh"
     try:
         response = requests.get(url)
-        response.raise_for_status()  # Memastikan tidak ada error dalam pengunduhan
+        response.raise_for_status()  
         script_content = response.text
         
         # Menyimpan skrip yang diunduh ke file sementara
