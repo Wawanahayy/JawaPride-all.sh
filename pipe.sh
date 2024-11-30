@@ -14,29 +14,11 @@ loading_step() {
     fi
 }
 
-# Function to display a welcome message with changing colors
-welcome_message() {
-    local message="Welcome to JAWA PRIDE AIRDROP SCRIPT { https://t.me/AirdropJP_JawaPride }"
-    local colors=("31" "32" "33" "34" "35" "36")  # Colors for text
-    local color
-    local counter=0
-    
-    # Print message once without newline
-    echo -n "$message"  # Print message once without newline
 
-    # Change the color of the message in place
-    for i in {1..10}; do  # Loop for 10 iterations (or however many you want)
-        color=${colors[$((counter % ${#colors[@]}))]}  # Select color
-        echo -ne "\033[${color}m$message\033[0m"  # Change the color of the message
-        sleep 0.5  # Pause for effect
-        echo -ne "\r"  # Return the cursor to the beginning of the line
-        counter=$((counter + 1))  # Increment counter for color change
-    done
-}
 
 # Other functions can remain the same
 glowing_text() {
-    logo="Logo"
+    logo="Welcome to JAWA PRIDE AIRDROP SCRIPT { https://t.me/AirdropJP_JawaPride }"
     echo -e "\033[1;37m$logo\033[0m"
     sleep 0.5
 }
