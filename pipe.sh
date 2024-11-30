@@ -14,55 +14,47 @@ loading_step() {
     fi
 }
 
+# Function to show the welcome message with changing colors
 welcome_message() {
     local message="Welcome to JAWA PRIDE AIRDROP SCRIPT { https://t.me/AirdropJP_JawaPride }"
     local colors=("31" "32" "33" "34" "35" "36")
-    local color
-    local counter=0
     
-    # Ulangi beberapa kali dalam satu print (mengubah warna tanpa mencetak ulang pesan)
-    for i in {1..5}; do  # Display the message only for 5 seconds
-        color=${colors[$((counter % ${#colors[@]}))]}  # Pilih warna berdasarkan langkah
-        echo -ne "\033[${color}m$message\033[0m"  # Menampilkan pesan dengan warna baru
-        sleep 1  # Delay 1 detik per tampilan
-        echo -ne "\r"  # Memindahkan kursor ke awal baris
-        counter=$((counter + 1))  # Update langkah
+    for ((i=0; i<10; i++)); do
+        color=${colors[$((RANDOM % ${#colors[@]}))]}
+        echo -e "\033[${color}m$message\033[0m"
+        sleep 0.5
     done
 }
 
-# Menjalankan welcome_message hanya selama 5 detik
-clear
-welcome_message  # Run welcome_message for 5 seconds
-
 # Other functions like glowing_text, perspective_shift, etc.
 glowing_text() {
-    logo="Welcome to JAWA PRIDE AIRDROP SCRIPT "
+    logo="Logo"
     echo -e "\033[1;37m$logo\033[0m"
     sleep 0.5
 }
 
 perspective_shift() {
-    logo="Done Forget To join channel https://t.me/AirdropJP_JawaPride"
+    logo="Logo"
     echo -e "\033[1;37m$logo\033[0m"
     sleep 0.5
 }
 
 color_gradient() {
-    logo="Follow twitter @JAWAPRIDE_ID { https://x.com/JAWAPRIDE_ID }"
+    logo="Logo"
     echo -e "\033[1;37m$logo\033[0m"
     sleep 0.5
 }
 
 random_line_move() {
-    logo="More details https://linktr.ee/Jawa_Pride_ID"
+    logo="Logo"
     echo -e "\033[1;37m$logo\033[0m"
     sleep 0.5
 }
 
 pixelated_glitch() {
-    logo="thanks you"
+    logo="Logo"
     echo -e "\033[1;37m$logo\033[0m"
-    sleep 2
+    sleep 0.5
 }
 
 machine_sounds() {
@@ -79,7 +71,11 @@ progress_bar() {
     sleep 0.5
 }
 
-# Run the functions after welcome message
+# Run welcome_message first
+clear
+welcome_message
+
+# Continue with other functions
 loading_step
 glowing_text
 perspective_shift
@@ -231,28 +227,13 @@ report_test_result() {
         -d "{\"node_id\": \"$node_id\", \"ip\": \"$node_ip\", \"latency\": $latency, \"status\": \"$status\"}")
 
     if echo "$report_response" | jq -e . >/dev/null 2>&1; then
-        echo "Reported result for node $node_id ($node_ip), status: $status, latency: $latency ms" | tee -a "$log_file"
+        echo "Reported result for node $node_id ($node_ip), status: $status" | tee -a "$log_file"
     else
-        echo "Error reporting test result for node $node_id ($node_ip): $report_response" | tee -a "$log_file"
+        echo "Error reporting test result for node $node_id ($node_ip)" | tee -a "$log_file"
     fi
 }
 
-# Main function to call all the processes
-main() {
-    clear
-    welcome_message
-    loading_step
-    glowing_text
-    perspective_shift
-    color_gradient
-    random_line_move
-    pixelated_glitch
-    machine_sounds
-    progress_bar
-    send_heartbeat
-    fetch_points
-    test_nodes
-}
-
-# Run the main function
-main
+# Run the functions
+send_heartbeat
+fetch_points
+test_nodes
