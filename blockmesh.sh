@@ -4,6 +4,7 @@ SCRIPT_PATH="$HOME/Blockmesh.sh"
 LOG_FILE="$HOME/blockmesh/blockmesh.log"
 BLOCKMESH_DIR="$HOME/blockmesh"
 BLOCKMESH_CLI_PATH="$BLOCKMESH_DIR/target/x86_64-unknown-linux-gnu/release/blockmesh-cli"
+BLOCKMESH_TAR_PATH="$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
 
 exec > >(tee -a "$LOG_FILE") 2>&1
 
@@ -82,21 +83,27 @@ function deploy_node() {
     echo "Direktori dibuat: $BLOCKMESH_DIR"
 
     echo "Mengunduh blockmesh-cli versi 0.0.412..."
-    curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.412/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
+    curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.412/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o "$BLOCKMESH_TAR_PATH"
 
-    # Cek MIME type file yang diunduh
-    file_type=$(file --mime-type -b "$BLOCKMESH_DIR/blockmesh-cli.tar.gz")
-    if [ "$file_type" != "application/gzip" ]; then
-        echo "Error: File yang diunduh bukan format gzip yang valid ($file_type)."
-        echo "Silakan periksa tautan unduhan atau coba unduh manual dari halaman rilis GitHub."
+    # Verifikasi apakah file sudah diunduh dengan benar
+    if [ ! -f "$BLOCKMESH_TAR_PATH" ]; then
+        echo "Error: File blockmesh-cli.tar.gz tidak ditemukan setelah unduhan."
+        exit 1
+    fi
+
+    echo "Verifikasi file: $(file "$BLOCKMESH_TAR_PATH")"
+
+    # Memeriksa apakah file tersebut adalah gzip tarball
+    if ! file "$BLOCKMESH_TAR_PATH" | grep -q "gzip compressed data"; then
+        echo "Error: File blockmesh-cli.tar.gz bukan format gzip yang valid."
         exit 1
     fi
 
     echo "Ekstraksi blockmesh-cli..."
-    tar -xzf "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" -C "$BLOCKMESH_DIR"
-    rm "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
-    echo "Unduhan dan ekstraksi blockmesh-cli selesai."
+    tar -xvzf "$BLOCKMESH_TAR_PATH" -C "$BLOCKMESH_DIR"
+    rm "$BLOCKMESH_TAR_PATH"
 
+    echo "Unduhan dan ekstraksi blockmesh-cli selesai."
     echo "Path blockmesh-cli: $BLOCKMESH_CLI_PATH"
 
     read -p "Masukkan email BlockMesh Anda: " BLOCKMESH_EMAIL
@@ -107,7 +114,7 @@ function deploy_node() {
     export BLOCKMESH_PASSWORD
 
     if [ ! -f "$BLOCKMESH_CLI_PATH" ]; then
-        echo "Error: file blockmesh-cli tidak ditemukan, periksa unduhan dan ekstraksi."
+        echo "Error: file blockmesh-cli tidak ditemukan setelah ekstraksi."
         exit 1
     fi
 
