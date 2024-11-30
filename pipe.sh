@@ -178,8 +178,81 @@ fetch_points() {
     fi
 }
 
-# Send heartbeat every minute
+test_nodes() {
+    token=$(cat token.txt)
+    nodes_response=$(curl -s -X GET "https://pipe-network-backend.pipecanary.workers.dev/api/nodes" \
+        -H "Authorization: Bearer $token")
+
+    if [ -z "$nodes_response" ]; then
+        echo "Error: No nodes found or failed to fetch nodes." | tee -a "$log_file"
+        return
+    fi
+
+    for node in $(echo "$nodes_response" | jq -c '.[]'); do
+        node_id=$(echo "$node" | jq -r .node_id)
+        node_ip=$(echo "$node" | jq -r .ip)
+
+        latency=$(test_node_latency "$node_ip")
+
+        if [[ "$latency" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "Node ID: $node_id, IP: $node_ip, Latency: ${latency}ms" | tee -a "$log_file"
+        else
+            echo "Node ID: $node_id, IP: $node_ip, Latency: Timeout/Error" | tee -a "$log_file"
+        fi
+
+        report_test_result "$node_id" "$node_ip" "$latency"
+    done
+}
+
+test_node_latency() {
+    node_ip=$1
+    start=$(date +%s%3N)
+
+    latency=$(curl -o /dev/null -s -w "%{time_total}\n" "http://$node_ip")
+
+    if [ -z "$latency" ]; then
+        return -1
+    else
+        echo $latency
+    fi
+}
+
+report_test_result() {
+    node_id=$1
+    node_ip=$2
+    latency=$3
+
+    token=$(cat token.txt)
+
+    if [ -z "$token" ]; then
+        echo "Error: No token found. Skipping result reporting." | tee -a "$log_file"
+        return
+    fi
+
+    if [[ "$latency" =~ ^[0-9]+(\.[0-9]+)?$ ]] && (( $(echo "$latency > 0" | bc -l) )); then
+        status="online"
+    else
+        status="offline"
+        latency=-1
+    fi
+
+    report_response=$(curl -s -X POST "https://pipe-network-backend.pipecanary.workers.dev/api/test" \
+        -H "Authorization: Bearer $token" \
+        -H "Content-Type : application/json" \
+        -d "{\"node_id\": \"$node_id\", \"ip\": \"$node_ip\", \"latency\": $latency, \"status\": \"$status\"}")
+
+    if echo "$report_response" | jq -e . >/dev/null 2>&1; then
+        echo "Reported result for node $node_id ($node_ip), status: $status" | tee -a "$log_file"
+    else
+        echo "Failed to report result for node $node_id ($node_ip)." | tee -a "$log_file"
+    fi
+}
+
 while true; do
+    fetch_points
+    test_nodes
     send_heartbeat
-    sleep 60
+    fetch_points
+    sleep 300
 done
+
