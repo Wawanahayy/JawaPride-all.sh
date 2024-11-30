@@ -23,12 +23,15 @@ welcome_message() {
     # Ulangi beberapa kali dalam satu print (mengubah warna tanpa mencetak ulang pesan)
     while true; do
         color=${colors[$((counter % ${#colors[@]}))]}  # Pilih warna berdasarkan langkah
-        echo -ne "\033[${color}m$message\033[0m\r"  # \r akan menggerakkan kursor ke awal baris
+        echo -ne "\033[${color}m$message\033[0m"  # Menampilkan pesan dengan warna baru
         sleep 0.5  # Delay setengah detik untuk memberikan efek kedip
+        echo -ne "\r"  # Memindahkan kursor ke awal baris
         counter=$((counter + 1))  # Update langkah
     done
 }
 
+# Menjalankan welcome_message
+welcome_message
 
 
 
