@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Define functions first
+# Define the loading_step function in Bash
 loading_step() {
     echo "Mengunduh dan menjalankan skrip display..."
     
@@ -29,6 +29,10 @@ welcome_message() {
         counter=$((counter + 1))  # Update langkah
     done
 }
+
+# Menjalankan welcome_message
+clear
+welcome_message &  # Run welcome_message in the background
 
 # Other functions like glowing_text, perspective_shift, etc.
 glowing_text() {
@@ -75,17 +79,61 @@ progress_bar() {
     sleep 0.5
 }
 
+# Run the functions after welcome message
+loading_step
+glowing_text
+perspective_shift
+color_gradient
+random_line_move
+pixelated_glitch
+machine_sounds
+progress_bar
+
+# Update and upgrade the system
+sudo apt update && sudo apt upgrade -y
+
+# Install dependencies
+dependencies=("curl" "jq")
+for dependency in "${dependencies[@]}"; do
+    if ! dpkg -l | grep -q "$dependency"; then
+        echo "$dependency is not installed. Installing..."
+        sudo apt install "$dependency" -y
+    else
+        echo "$dependency is already installed."
+    fi
+done
+
+# Prompt for user input (email and password)
+echo "Please enter your email:"
+read -r email
+
+echo "Please enter your password:"
+read -s password
+
+# Make the API request to login and get the token
+response=$(curl -s -X POST "https://pipe-network-backend.pipecanary.workers.dev/api/login" \
+    -H "Content-Type: application/json" \
+    -d "{\"email\":\"$email\", \"password\":\"$password\"}")
+
+echo "Login response: $response"
+echo "$(echo $response | jq -r .token)" > token.txt
+
+log_file="node_operations.log"
+
+# Function to fetch the public IP address
 fetch_ip_address() {
     ip_response=$(curl -s "https://api64.ipify.org?format=json")
     echo "$(echo $ip_response | jq -r .ip)"
 }
 
+# Function to fetch the geo-location of the IP address
 fetch_geo_location() {
     ip=$1
     geo_response=$(curl -s "https://ipapi.co/${ip}/json/")
     echo "$geo_response"
 }
 
+# Function to send heartbeat data
 send_heartbeat() {
     token=$(cat token.txt)
     username="your_username"
@@ -95,8 +143,6 @@ send_heartbeat() {
     heartbeat_data=$(jq -n --arg username "$username" --arg ip "$ip" --argjson geo_info "$geo_info" \
         '{username: $username, ip: $ip, geo: $geo_info}')
 
-    echo "Heartbeat data: $heartbeat_data" | tee -a "$log_file"  # Debug print
-    
     heartbeat_response=$(curl -s -X POST "https://pipe-network-backend.pipecanary.workers.dev/api/heartbeat" \
         -H "Authorization: Bearer $token" \
         -H "Content-Type: application/json" \
@@ -105,6 +151,61 @@ send_heartbeat() {
     echo "Heartbeat response: $heartbeat_response" | tee -a "$log_file"
 }
 
+# Fetch points
+fetch_points() {
+    token=$(cat token.txt)
+    points_response=$(curl -s -X GET "https://pipe-network-backend.pipecanary.workers.dev/api/points" \
+        -H "Authorization: Bearer $token")
+
+    if echo "$points_response" | jq -e . >/dev/null 2>&1; then
+        echo "User Points Response: $points_response" | tee -a "$log_file"
+    else
+        echo "Error fetching points: $points_response" | tee -a "$log_file"
+    fi
+}
+
+# Test nodes
+test_nodes() {
+    token=$(cat token.txt)
+    nodes_response=$(curl -s -X GET "https://pipe-network-backend.pipecanary.workers.dev/api/nodes" \
+        -H "Authorization: Bearer $token")
+
+    if [ -z "$nodes_response" ]; then
+        echo "Error: No nodes found or failed to fetch nodes." | tee -a "$log_file"
+        return
+    fi
+
+    for node in $(echo "$nodes_response" | jq -c '.[]'); do
+        node_id=$(echo "$node" | jq -r .node_id)
+        node_ip=$(echo "$node" | jq -r .ip)
+
+        latency=$(test_node_latency "$node_ip")
+
+        if [[ "$latency" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "Node ID: $node_id, IP: $node_ip, Latency: ${latency}ms" | tee -a "$log_file"
+        else
+            echo "Node ID: $node_id, IP: $node_ip, Latency: Timeout/Error" | tee -a "$log_file"
+        fi
+
+        report_test_result "$node_id" "$node_ip" "$latency"
+    done
+}
+
+# Test latency for a node
+test_node_latency() {
+    node_ip=$1
+    start=$(date +%s%3N)
+
+    latency=$(curl -o /dev/null -s -w "%{time_total}\n" "http://$node_ip")
+
+    if [ -z "$latency" ]; then
+        return -1
+    else
+        echo $latency
+    fi
+}
+
+# Report test results for a node
 report_test_result() {
     node_id=$1
     node_ip=$2
@@ -137,16 +238,6 @@ report_test_result() {
 }
 
 # Run the functions
-clear
-welcome_message
-loading_step
-glowing_text
-perspective_shift
-color_gradient
-random_line_move
-pixelated_glitch
-machine_sounds
-progress_bar
-
-# Continue with other operations
 send_heartbeat
+fetch_points
+test_nodes
