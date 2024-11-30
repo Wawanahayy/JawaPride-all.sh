@@ -81,13 +81,27 @@ function deploy_node() {
     mkdir -p "$BLOCKMESH_DIR"
     echo "Direktori dibuat: $BLOCKMESH_DIR"
 
-    echo "Mengunduh blockmesh-cli versi 0.0.348..."
-    curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.393/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
+# Set the correct URL for blockmesh-cli
+BLOCKMESH_CLI_URL="https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.412/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz"
 
-    echo "Ekstraksi blockmesh-cli..."
-    tar -xzf "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" -C "$BLOCKMESH_DIR"
-    rm "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
-    echo "Unduhan dan ekstraksi blockmesh-cli selesai."
+# Download using wget
+echo "Mengunduh blockmesh-cli versi 0.0.412..."
+wget -O "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" "$BLOCKMESH_CLI_URL"
+
+# Verifikasi unduhan
+if file "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" | grep -q 'gzip compressed data'; then
+    echo "File berhasil diunduh dan valid."
+else
+    echo "File tidak valid, pastikan URL atau file yang diunduh benar."
+    exit 1
+fi
+
+# Ekstraksi
+echo "Ekstraksi blockmesh-cli..."
+tar -xzf "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" -C "$BLOCKMESH_DIR"
+rm "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
+echo "Unduhan dan ekstraksi blockmesh-cli selesai."
+
 
     echo "Path blockmesh-cli: $BLOCKMESH_CLI_PATH"
 
