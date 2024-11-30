@@ -16,22 +16,32 @@ loading_step() {
 
 welcome_message() {
     local message="Welcome to JAWA PRIDE AIRDROP SCRIPT { https://t.me/AirdropJP_JawaPride }"
-    local colors=("31" "32" "33" "34" "35" "36")
+    local colors=("31" "32" "33" "34" "35" "36")  # Warna untuk teks
     local color
     local counter=0
     
-    # Ulangi beberapa kali dalam satu print (mengubah warna tanpa mencetak ulang pesan)
+    # Loop tanpa cetak ulang pesan, hanya mengubah warna
     while true; do
-        color=${colors[$((counter % ${#colors[@]}))]}  # Pilih warna berdasarkan langkah
-        echo -ne "\033[${color}m$message\033[0m"  # Menampilkan pesan dengan warna baru
-        sleep 0.5  # Delay setengah detik untuk memberikan efek kedip
-        echo -ne "\r"  # Memindahkan kursor ke awal baris
-        counter=$((counter + 1))  # Update langkah
+        # Pilih warna dari array colors berdasarkan counter
+        color=${colors[$((counter % ${#colors[@]}))]}  
+        
+        # Gunakan echo -ne untuk mengubah warna dan menampilkan pesan dalam satu baris
+        echo -ne "\033[${color}m$message\033[0m"  
+        
+        # Tunggu beberapa waktu untuk efek kedip
+        sleep 0.5 
+        
+        # Hapus baris yang ditampilkan dan tampilkan kembali pesan di tempat yang sama
+        echo -ne "\r"  # Mengembalikan kursor ke awal baris
+        
+        # Increment counter untuk pergantian warna
+        counter=$((counter + 1))
     done
 }
 
 # Menjalankan welcome_message
 welcome_message
+
 
 
 
