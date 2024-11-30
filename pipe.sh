@@ -19,14 +19,17 @@ welcome_message() {
     local colors=("31" "32" "33" "34" "35" "36")
     local total_steps=10
     local step=0
+    local color
     
+    # Loop untuk mengganti warna pesan
     while [ $step -lt $total_steps ]; do
-        color=${colors[$((step % ${#colors[@]}))]}
-        echo -e "\033[${color}m$message\033[0m"
-        sleep 0.1
-        step=$((step + 1))
+        color=${colors[$((step % ${#colors[@]}))]}  # Pilih warna berdasarkan langkah
+        echo -e "\033[${color}m$message\033[0m"  # Tampilkan pesan dengan warna
+        sleep 0.5  # Delay setengah detik untuk memberikan efek kedip
+        step=$((step + 1))  # Update langkah
     done
 }
+
 
 
 # Other functions like glowing_text, perspective_shift, etc.
