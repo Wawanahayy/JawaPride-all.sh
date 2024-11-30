@@ -21,18 +21,18 @@ welcome_message() {
     local counter=0
     
     # Ulangi beberapa kali dalam satu print (mengubah warna tanpa mencetak ulang pesan)
-    while true; do
+    for i in {1..5}; do  # Display the message only for 5 seconds
         color=${colors[$((counter % ${#colors[@]}))]}  # Pilih warna berdasarkan langkah
         echo -ne "\033[${color}m$message\033[0m"  # Menampilkan pesan dengan warna baru
-        sleep 0.5  # Delay setengah detik untuk memberikan efek kedip
+        sleep 1  # Delay 1 detik per tampilan
         echo -ne "\r"  # Memindahkan kursor ke awal baris
         counter=$((counter + 1))  # Update langkah
     done
 }
 
-# Menjalankan welcome_message
+# Menjalankan welcome_message hanya selama 5 detik
 clear
-welcome_message &  # Run welcome_message in the background
+welcome_message  # Run welcome_message for 5 seconds
 
 # Other functions like glowing_text, perspective_shift, etc.
 glowing_text() {
@@ -231,13 +231,28 @@ report_test_result() {
         -d "{\"node_id\": \"$node_id\", \"ip\": \"$node_ip\", \"latency\": $latency, \"status\": \"$status\"}")
 
     if echo "$report_response" | jq -e . >/dev/null 2>&1; then
-        echo "Reported result for node $node_id ($node_ip), status: $status" | tee -a "$log_file"
+        echo "Reported result for node $node_id ($node_ip), status: $status, latency: $latency ms" | tee -a "$log_file"
     else
-        echo "Error reporting test result for node $node_id ($node_ip)" | tee -a "$log_file"
+        echo "Error reporting test result for node $node_id ($node_ip): $report_response" | tee -a "$log_file"
     fi
 }
 
-# Run the functions
-send_heartbeat
-fetch_points
-test_nodes
+# Main function to call all the processes
+main() {
+    clear
+    welcome_message
+    loading_step
+    glowing_text
+    perspective_shift
+    color_gradient
+    random_line_move
+    pixelated_glitch
+    machine_sounds
+    progress_bar
+    send_heartbeat
+    fetch_points
+    test_nodes
+}
+
+# Run the main function
+main
