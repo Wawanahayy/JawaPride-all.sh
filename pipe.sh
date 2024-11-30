@@ -24,9 +24,13 @@ welcome_message() {
     local color
     local counter=0
     
+    # Menampilkan logo di baris pertama
+    echo -e "\033[1;37m$logo\033[0m"
+    
+    # Menampilkan pesan dengan warna yang berganti
     for i in {1..5}; do  # Display the message only for 5 seconds
         color=${colors[$((counter % ${#colors[@]}))]}  # Pilih warna berdasarkan langkah
-        echo -ne "\033[${color}m$logo: $message\033[0m"  # Menampilkan pesan dengan warna baru
+        echo -ne "\033[${color}m$message\033[0m"  # Menampilkan pesan dengan warna baru
         sleep 1  # Delay 1 detik per tampilan
         echo -ne "\r"  # Memindahkan kursor ke awal baris
         counter=$((counter + 1))  # Update langkah
@@ -238,9 +242,9 @@ report_test_result() {
         -d "{\"node_id\": \"$node_id\", \"ip\": \"$node_ip\", \"latency\": $latency, \"status\": \"$status\"}")
 
     if echo "$report_response" | jq -e . >/dev/null 2>&1; then
-        echo "Reported result for node $node_id ($node_ip), status: $status" | tee -a "$log_file"
+        echo "Node $node_id ($node_ip) reported successfully." | tee -a "$log_file"
     else
-        echo "Error reporting test result for node $node_id ($node_ip)." | tee -a "$log_file"
+        echo "Failed to report node $node_id ($node_ip)." | tee -a "$log_file"
     fi
 }
 
