@@ -84,6 +84,14 @@ function deploy_node() {
     echo "Mengunduh blockmesh-cli versi 0.0.412..."
     curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.412/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
 
+    # Cek MIME type file yang diunduh
+    file_type=$(file --mime-type -b "$BLOCKMESH_DIR/blockmesh-cli.tar.gz")
+    if [ "$file_type" != "application/gzip" ]; then
+        echo "Error: File yang diunduh bukan format gzip yang valid ($file_type)."
+        echo "Silakan periksa tautan unduhan atau coba unduh manual dari halaman rilis GitHub."
+        exit 1
+    fi
+
     echo "Ekstraksi blockmesh-cli..."
     tar -xzf "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" -C "$BLOCKMESH_DIR"
     rm "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
