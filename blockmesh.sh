@@ -4,8 +4,6 @@ SCRIPT_PATH="$HOME/Blockmesh.sh"
 LOG_FILE="$HOME/blockmesh/blockmesh.log"
 BLOCKMESH_DIR="$HOME/blockmesh"
 BLOCKMESH_CLI_PATH="$BLOCKMESH_DIR/target/x86_64-unknown-linux-gnu/release/blockmesh-cli"
-BLOCKMESH_TAR_URL="https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.411/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz"
-BLOCKMESH_TAR_PATH="$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
 
 exec > >(tee -a "$LOG_FILE") 2>&1
 
@@ -83,28 +81,12 @@ function deploy_node() {
     mkdir -p "$BLOCKMESH_DIR"
     echo "Direktori dibuat: $BLOCKMESH_DIR"
 
-    # Mengunduh blockmesh-cli versi terbaru
-    echo "Mengunduh blockmesh-cli versi 0.0.412..."
-    curl -L "$BLOCKMESH_TAR_URL" -o "$BLOCKMESH_TAR_PATH"
+    echo "Mengunduh blockmesh-cli versi 0.0.348..."
+    curl -L "https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.407/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
 
-    # Verifikasi file
-    if [ ! -f "$BLOCKMESH_TAR_PATH" ]; then
-        echo "Error: File blockmesh-cli.tar.gz tidak ditemukan setelah unduhan."
-        exit 1
-    fi
-
-    # Verifikasi apakah file dalam format tar.gz
-    if file "$BLOCKMESH_TAR_PATH" | grep -q 'gzip compressed data'; then
-        echo "File valid, melanjutkan ekstraksi..."
-    else
-        echo "Error: File blockmesh-cli.tar.gz bukan format gzip yang valid."
-        exit 1
-    fi
-
-    # Ekstraksi blockmesh-cli
     echo "Ekstraksi blockmesh-cli..."
-    tar -xzf "$BLOCKMESH_TAR_PATH" -C "$BLOCKMESH_DIR"
-    rm "$BLOCKMESH_TAR_PATH"  # Hapus file .tar.gz setelah ekstraksi selesai
+    tar -xzf "$BLOCKMESH_DIR/blockmesh-cli.tar.gz" -C "$BLOCKMESH_DIR"
+    rm "$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
     echo "Unduhan dan ekstraksi blockmesh-cli selesai."
 
     echo "Path blockmesh-cli: $BLOCKMESH_CLI_PATH"
