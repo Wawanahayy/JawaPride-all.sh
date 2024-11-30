@@ -4,7 +4,7 @@ SCRIPT_PATH="$HOME/Blockmesh.sh"
 LOG_FILE="$HOME/blockmesh/blockmesh.log"
 BLOCKMESH_DIR="$HOME/blockmesh"
 BLOCKMESH_CLI_PATH="$BLOCKMESH_DIR/target/x86_64-unknown-linux-gnu/release/blockmesh-cli"
-BLOCKMESH_TAR_URL="https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.412/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz"
+BLOCKMESH_TAR_URL="https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.411/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz"
 BLOCKMESH_TAR_PATH="$BLOCKMESH_DIR/blockmesh-cli.tar.gz"
 
 exec > >(tee -a "$LOG_FILE") 2>&1
