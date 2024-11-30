@@ -14,14 +14,14 @@ loading_step() {
     fi
 }
 
-# Function to show the welcome message with changing colors
+
 welcome_message() {
     local message="Welcome to JAWA PRIDE AIRDROP SCRIPT { https://t.me/AirdropJP_JawaPride }"
     local colors=("31" "32" "33" "34" "35" "36")
     local color
     local counter=0
     
-    # Ulangi beberapa kali dalam satu print (mengubah warna tanpa mencetak ulang pesan)
+
     for i in {1..5}; do  # Display the message only for 5 seconds
         color=${colors[$((counter % ${#colors[@]}))]}  # Pilih warna berdasarkan langkah
         echo -ne "\033[${color}m$message\033[0m"  # Menampilkan pesan dengan warna baru
@@ -36,31 +36,31 @@ clear
 welcome_message 
 
 glowing_text() {
-    logo="Welcome to JAWA PRIDE AIRDROP SCRIPT "
+    message="Welcome to JAWA PRIDE AIRDROP SCRIPT "
     echo -e "\033[1;37m$logo\033[0m"
     sleep 0.5
 }
 
 perspective_shift() {
-    logo="Done Forget To join channel https://t.me/AirdropJP_JawaPride"
+    message="Done Forget To join channel https://t.me/AirdropJP_JawaPride"
     echo -e "\033[1;37m$logo\033[0m"
     sleep 0.5
 }
 
 color_gradient() {
-    logo="Follow twitter @JAWAPRIDE_ID { https://x.com/JAWAPRIDE_ID }"
+    message="Follow twitter @JAWAPRIDE_ID { https://x.com/JAWAPRIDE_ID }"
     echo -e "\033[1;37m$logo\033[0m"
     sleep 0.5
 }
 
 random_line_move() {
-    logo="More details https://linktr.ee/Jawa_Pride_ID"
+    message="More details https://linktr.ee/Jawa_Pride_ID"
     echo -e "\033[1;37m$logo\033[0m"
     sleep 0.5
 }
 
 pixelated_glitch() {
-    logo="thanks you"
+    message="thanks you"
     echo -e "\033[1;37m$logo\033[0m"
     sleep 2
 }
