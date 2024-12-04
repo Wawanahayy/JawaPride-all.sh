@@ -116,7 +116,7 @@ view_miner_logs() {
 show_menu() {
   clear
   # Menampilkan logo setiap kali menu ditampilkan
-  curl -m 5 -s https://raw.githubusercontent.com/ziqing888/logo.sh/refs/heads/main/logo.sh | bash
+  curl -m 5 -s curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh | bash
   echo -e "\n${TEBAL}${BIRU}==================== Pengaturan Volara-Miner ====================${RESET}"
   echo "1. Update dan upgrade sistem"
   echo "2. Instal Docker"
