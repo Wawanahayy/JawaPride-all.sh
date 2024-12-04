@@ -11,10 +11,14 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 # Fungsi menu utama
+# Fungsi menu utama
 function main_menu() {
-curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh | bash
     while true; do
         clear
+        
+        # Menampilkan display dari URL
+        curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh | bash
+        
         echo "================================================================"
         echo "Untuk keluar dari skrip, tekan Ctrl + C pada keyboard."
         echo "Pilih tindakan yang ingin dilakukan:"
@@ -46,6 +50,7 @@ curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads
         esac
     done
 }
+
 
 # Fungsi untuk menjalankan node
 function start_node() {
