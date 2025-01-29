@@ -120,20 +120,42 @@ set_private_key() {
     done
 }
 
+# Fungsi untuk mengatur jaringan yang diaktifkan
 set_enabled_networks() {
     read -p "Apakah Anda ingin mengaktifkan 5 jaringan default (arbitrum-sepolia, base-sepolia, blast-sepolia, optimism-sepolia, l1rn)? (y/n): " aktifkan_lima
     if [[ "$aktifkan_lima" == "y" || "$aktifkan_lima" == "Y" ]]; then
         ENABLED_NETWORKS="arbitrum-sepolia,base-sepolia,blast-sepolia,optimism-sepolia,l1rn"
-        # Menambahkan RPC untuk l1rn
+        
+        # Menambahkan RPC untuk masing-masing jaringan
+        ARBITRUM_RPC_URL="https://sepolia-rollup.arbitrum.io/rpc"
+        BASE_RPC_URL="https://sepolia.base.org/rpc"
+        BLAST_RPC_URL="https://sepolia.blast.io/"
+        OPTIMISM_RPC_URL="https://optimism-sepolia.drpc.org"
         L1RN_RPC_URL="https://brn.calderarpc.com/"
+        
+        # Mencetak informasi jaringan dan RPC yang diaktifkan
         echo "Mengaktifkan 5 jaringan default: $ENABLED_NETWORKS"
-        echo "Menambahkan RPC untuk l1rn: $L1RN_RPC_URL"
+        echo "Menambahkan RPC untuk masing-masing jaringan:"
+        echo "Arbitrum: $ARBITRUM_RPC_URL"
+        echo "Base: $BASE_RPC_URL"
+        echo "Blast: $BLAST_RPC_URL"
+        echo "Optimism: $OPTIMISM_RPC_URL"
+        echo "L1RN: $L1RN_RPC_URL"
+        
+        # Menyimpan URL RPC dalam variabel lingkungan
+        export ARBITRUM_RPC_URL
+        export BASE_RPC_URL
+        export BLAST_RPC_URL
+        export OPTIMISM_RPC_URL
+        export L1RN_RPC_URL
+        
     else
         echo "Anda tidak memilih untuk mengaktifkan 5 jaringan default."
         exit 0
     fi
     echo "Pengaturan selesai. Jaringan yang diaktifkan: $ENABLED_NETWORKS"
 }
+
 
 # Fungsi untuk membuat service systemd
 create_systemd_service() {
