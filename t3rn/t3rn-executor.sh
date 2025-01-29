@@ -127,27 +127,29 @@ set_enabled_networks() {
         ENABLED_NETWORKS="arbitrum-sepolia,base-sepolia,blast-sepolia,optimism-sepolia,l1rn"
         
         # Menambahkan RPC untuk masing-masing jaringan
-        ARBITRUM_RPC_URL="https://sepolia-rollup.arbitrum.io/rpc"
-        BASE_RPC_URL="https://sepolia.base.org/rpc"
-        BLAST_RPC_URL="https://sepolia.blast.io/"
-        OPTIMISM_RPC_URL="https://optimism-sepolia.drpc.org"
+        RPC_ENDPOINTS_ARBT="https://sepolia-rollup.arbitrum.io/rpc"
+        RPC_ENDPOINTS_BSSP="https://sepolia.base.org/rpc"
+        RPC_ENDPOINTS_BLSSL="https://sepolia.blast.io/"
+        RPC_ENDPOINTS_OPSP="https://optimism-sepolia.drpc.org"
         L1RN_RPC_URL="https://brn.calderarpc.com/"
         
         # Mencetak informasi jaringan dan RPC yang diaktifkan
         echo "Mengaktifkan 5 jaringan default: $ENABLED_NETWORKS"
         echo "Menambahkan RPC untuk masing-masing jaringan:"
-        echo "Arbitrum: $ARBITRUM_RPC_URL"
-        echo "Base: $BASE_RPC_URL"
-        echo "Blast: $BLAST_RPC_URL"
-        echo "Optimism: $OPTIMISM_RPC_URL"
+        echo "Arbitrum: $RPC_ENDPOINTS_ARBT"
+        echo "Base: $RPC_ENDPOINTS_BSSP"
+        echo "Blast: $RPC_ENDPOINTS_BLSSL"
+        echo "Optimism: $RPC_ENDPOINTS_OPSP"
         echo "L1RN: $L1RN_RPC_URL"
         
         # Menyimpan URL RPC dalam variabel lingkungan
-        export ARBITRUM_RPC_URL
-        export BASE_RPC_URL
-        export BLAST_RPC_URL
-        export OPTIMISM_RPC_URL
-        export L1RN_RPC_URL
+    export EXECUTOR_PROCESS_ORDERS=true
+    export EXECUTOR_PROCESS_CLAIMS=true
+export RPC_ENDPOINTS_ARBT="$RPC_ENDPOINTS_ARBT"
+export RPC_ENDPOINTS_BSSP="$RPC_ENDPOINTS_BSSP"
+export RPC_ENDPOINTS_BLSS="$RPC_ENDPOINTS_BLSS"
+export RPC_ENDPOINTS_OPSP="$RPC_ENDPOINTS_OPSP"
+export L1RN_RPC_URL="$L1RN_RPC_URL"
         
     else
         echo "Anda tidak memilih untuk mengaktifkan 5 jaringan default."
