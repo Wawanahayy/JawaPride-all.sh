@@ -1,183 +1,200 @@
 #!/bin/bash
 
-# Fungsi untuk mencetak teks berwarna
-print_colored() {
-    local color_code=$1
-    local text=$2
-    echo -e "\033[${color_code}m${text}\033[0m"
-}
+# Path penyimpanan skrip
+SCRIPT_PATH="$HOME/t3rn.sh"
+LOGFILE="$HOME/executor/executor.log"
+EXECUTOR_DIR="$HOME/executor"
 
-# Fungsi untuk menampilkan teks berwarna di bagian atas skrip
-display_colored_text() {
-    print_colored "42;30" "========================================================="
-    print_colored "46;30" "========================================================="
-    print_colored "45;97" "======================   T3EN   ========================="
-    print_colored "43;30" "============== create all by JAWA-PRIDE  ================"
-    print_colored "41;97" "=========== https://t.me/AirdropJP_JawaPride ============"
-    print_colored "44;30" "========================================================="
-    print_colored "42;97" "========================================================="
-}
-
-# Tampilkan teks berwarna dan beri jeda
-display_colored_text
-sleep 5
-
-# Fungsi untuk mencetak log
-log() {
-    local level=$1
-    local message=$2
-    echo "[$level] $message"
-}
-
-# Pertanyaan untuk bergabung dengan channel
-while true; do
-    read -p "Apakah Anda sudah bergabung dengan channel kami Channel: @AirdropJP_JawaPride? (y/n): " join_channel
-    if [[ "$join_channel" == "y" || "$join_channel" == "Y" ]]; then
-        break
-    elif [[ "$join_channel" == "n" || "$join_channel" == "N" ]]; then
-        echo "Silakan bergabung dengan channel terlebih dahulu."
-        exit 1
-    else
-        echo "Pilihan tidak valid. Harap masukkan 'y' atau 'n'."
-    fi
-done
-
-# Mengunduh skrip dengan curl menggunakan URL mentah
-curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/main/t3rn/t3rn-executor.sh -o t3rn-executor.sh
-if [ $? -ne 0 ]; then
-    echo "Gagal mengunduh file t3rn-executor.sh. Periksa koneksi internet Anda dan coba lagi."
+# Memeriksa apakah skrip dijalankan dengan hak akses root
+if [ "$(id -u)" != "0" ]; then
+    echo "Skrip ini perlu dijalankan dengan hak akses root."
+    echo "Silakan coba menggunakan perintah 'sudo -i' untuk beralih ke root, lalu jalankan skrip ini lagi."
     exit 1
 fi
 
-sleep 5
-# Menjalankan skrip yang diunduh
-bash t3rn-executor.sh
-echo "T3rn Executor!"
-
-# Fungsi untuk menghentikan dan menghapus service lama jika ada
-remove_old_service() {
-    echo "Menghentikan dan menghapus service lama jika ada... executor_node2.service"
-    sudo systemctl stop executor_node2.service 2>/dev/null
-    sudo systemctl disable executor_node2.service 2>/dev/null
-    sudo rm -f /etc/systemd/system/executor_node2.service
-    sudo systemctl daemon-reload
-    echo "Service lama telah dihapus."
-}
-
-# Fungsi untuk memperbarui dan meng-upgrade sistem
-update_system() {
-    echo "Memperbarui dan meng-upgrade sistem..."
-    sudo apt update -q && sudo apt upgrade -qy
-    if [ $? -ne 0 ]; then
-        echo "Update sistem gagal. Keluar."
-        exit 1
-    fi
-}
-
-# Fungsi untuk mengunduh dan mengekstrak binary executor
-download_and_extract_binary() {
-    LATEST_VERSION=$(curl -s https://api.github.com/repos/t3rn/executor-release/releases/latest | grep 'tag_name' | cut -d\" -f4)
-    EXECUTOR_URL="https://github.com/t3rn/executor-release/releases/download/${LATEST_VERSION}/executor-linux-${LATEST_VERSION}.tar.gz"
-    EXECUTOR_FILE="executor-linux-${LATEST_VERSION}.tar.gz"
-    echo "Versi terbaru terdeteksi: $LATEST_VERSION"
-    echo "Mengunduh binary Executor dari $EXECUTOR_URL..."
-    curl -L -o $EXECUTOR_FILE $EXECUTOR_URL
-    if [ $? -ne 0 ]; then
-        echo "Gagal mengunduh binary Executor. Periksa koneksi internet Anda dan coba lagi."
-        exit 1
-    fi
-    echo "Mengekstrak binary..."
-    tar -xzvf $EXECUTOR_FILE
-    if [ $? -ne 0 ]; then
-        echo "Ekstraksi gagal. Keluar."
-        exit 1
-    fi
-    rm -rf $EXECUTOR_FILE
-    cd executor/executor/bin || exit
-    echo "Binary berhasil diunduh dan diekstrak."
-}
-
-# Fungsi untuk mengatur variabel lingkungan
-set_environment_variables() {
-    export NODE_ENV=testnet
-    export LOG_LEVEL=info
-    export LOG_PRETTY=false
-    echo "Variabel lingkungan disetel: NODE_ENV=$NODE_ENV, LOG_LEVEL=$LOG_LEVEL, LOG_PRETTY=$LOG_PRETTY"
-}
-
-# Fungsi untuk mengatur private key
-set_private_key() {
+# Fungsi menu utama
+function main_menu() {
     while true; do
-        read -p "Masukkan Private Key Metamask Anda untuk Node 2 (tanpa prefix 0x): " PRIVATE_KEY_LOCAL
-        PRIVATE_KEY_LOCAL=${PRIVATE_KEY_LOCAL#0x}
-        if [ ${#PRIVATE_KEY_LOCAL} -eq 64 ]; then
-            export PRIVATE_KEY_LOCAL
-            echo "Private key telah disetel untuk Node 2."
-            break
-        else
-            echo "Private key tidak valid. Harus 64 karakter panjangnya."
-        fi
+        clear
+        echo "Skrip ini dibuat oleh komunitas Dadu Besar Hahahaha, Twitter @ferdie_jhovie, gratis dan sumber terbuka, jangan percaya yang berbayar."
+        echo "Jika ada masalah, bisa menghubungi Twitter, hanya ada satu akun ini."
+        echo "================================================================"
+        echo "Untuk keluar dari skrip, tekan ctrl + C pada keyboard."
+        echo "Pilih tindakan yang ingin dilakukan:"
+        echo "1) Jalankan skrip"
+        echo "2) Lihat log"
+        echo "3) Hapus node"
+        echo "5) Keluar"
+        
+        read -p "Masukkan pilihan Anda [1-3]: " choice
+        
+        case $choice in
+            1)
+                execute_script
+                ;;
+            2)
+                view_logs
+                ;;
+            3)
+                delete_node
+                ;;
+            5)
+                echo "Keluar dari skrip."
+                exit 0
+                ;;
+            *)
+                echo "Pilihan tidak valid, silakan coba lagi."
+                ;;
+        esac
     done
 }
 
-# Fungsi untuk mengatur jaringan yang diaktifkan
-set_enabled_networks() {
-    read -p "Apakah Anda ingin mengaktifkan 5 jaringan default (arbitrum-sepolia, base-sepolia, blast-sepolia, optimism-sepolia, l1rn)? (y/n): " aktifkan_lima
-    if [[ "$aktifkan_lima" == "y" || "$aktifkan_lima" == "Y" ]]; then
-        ENABLED_NETWORKS="arbitrum-sepolia,base-sepolia,blast-sepolia,optimism-sepolia,l1rn"
-        echo "Mengaktifkan 5 jaringan default: $ENABLED_NETWORKS"
+# Fungsi untuk menjalankan skrip
+function execute_script() {
+    # Memeriksa apakah pm2 terinstal, jika belum maka akan diinstal otomatis
+    if ! command -v pm2 &> /dev/null; then
+        echo "pm2 belum terinstal, sedang menginstal pm2..."
+        # Menginstal pm2
+        sudo npm install -g pm2
+        if [ $? -eq 0 ]; then
+            echo "pm2 berhasil diinstal."
+        else
+            echo "Instalasi pm2 gagal, periksa konfigurasi npm Anda."
+            exit 1
+        fi
     else
-        echo "Anda tidak memilih untuk mengaktifkan 5 jaringan default."
-        exit 0
+        echo "pm2 sudah terinstal, melanjutkan eksekusi."
     fi
-    echo "Pengaturan selesai. Jaringan yang diaktifkan: $ENABLED_NETWORKS"
+
+    # Mengunduh file
+    echo "Sedang mengunduh executor-linux-v0.32.0.tar.gz..."
+    wget https://github.com/t3rn/executor-release/releases/download/v0.32.0/executor-linux-v0.32.0.tar.gz
+
+    # Memeriksa apakah unduhan berhasil
+    if [ $? -eq 0 ]; then
+        echo "Unduhan berhasil."
+    else
+        echo "Unduhan gagal, periksa koneksi jaringan atau alamat unduhan."
+        exit 1
+    fi
+
+    # Mengekstrak file ke direktori saat ini
+    echo "Sedang mengekstrak file..."
+    tar -xvzf executor-linux-v0.32.0.tar.gz
+
+    # Memeriksa apakah ekstraksi berhasil
+    if [ $? -eq 0 ]; then
+        echo "Ekstraksi berhasil."
+    else
+        echo "Ekstraksi gagal, periksa file tar.gz."
+        exit 1
+    fi
+
+    # Memeriksa apakah nama file yang diekstrak mengandung 'executor'
+    echo "Memeriksa apakah nama file atau direktori yang diekstrak mengandung 'executor'..."
+    if ls | grep -q 'executor'; then
+        echo "Pemeriksaan berhasil, menemukan file atau direktori yang mengandung 'executor'."
+    else
+        echo "Tidak ditemukan file atau direktori yang mengandung 'executor', mungkin nama file salah."
+        exit 1
+    fi
+
+    # Meminta pengguna memasukkan nilai untuk variabel lingkungan, menetapkan nilai default untuk EXECUTOR_MAX_L3_GAS_PRICE sebagai 100
+    read -p "Masukkan nilai untuk EXECUTOR_MAX_L3_GAS_PRICE [default 100]: " EXECUTOR_MAX_L3_GAS_PRICE
+    EXECUTOR_MAX_L3_GAS_PRICE="${EXECUTOR_MAX_L3_GAS_PRICE:-100}"
+
+    # Meminta pengguna memasukkan nilai untuk RPC_ENDPOINTS_OPSP, jika tidak diisi maka menggunakan nilai default
+    read -p "Masukkan nilai untuk RPC_ENDPOINTS_OPSP [default https://sepolia.optimism.io]: " RPC_ENDPOINTS_OPSP
+    RPC_ENDPOINTS_OPSP="${RPC_ENDPOINTS_OPSP:-https://sepolia.optimism.io}"
+
+    # Meminta pengguna memasukkan nilai untuk RPC_ENDPOINTS_BSSP, jika tidak diisi maka menggunakan nilai default
+    read -p "Masukkan nilai untuk RPC_ENDPOINTS_BSSP [default https://sepolia.base.org]: " RPC_ENDPOINTS_BSSP
+    RPC_ENDPOINTS_BSSP="${RPC_ENDPOINTS_BSSP:-https://sepolia.base.org}"
+
+    # Meminta pengguna memasukkan nilai untuk RPC_ENDPOINTS_BLSS, jika tidak diisi maka menggunakan nilai default
+    read -p "Masukkan nilai untuk RPC_ENDPOINTS_BLSS [default https://blessnet-sepolia-testnet.rpc.caldera.xyz/http]: " RPC_ENDPOINTS_BLSS
+    RPC_ENDPOINTS_BLSS="${RPC_ENDPOINTS_BLSS:-https://blessnet-sepolia-testnet.rpc.caldera.xyz/http}"
+
+    # Meminta pengguna memasukkan nilai untuk RPC_ENDPOINTS_ARBT, jika tidak diisi maka menggunakan nilai default
+    read -p "Masukkan nilai untuk RPC_ENDPOINTS_ARBT [default https://endpoints.omniatech.io/v1/arbitrum/sepolia/public]: " RPC_ENDPOINTS_ARBT
+    RPC_ENDPOINTS_ARBT="${RPC_ENDPOINTS_ARBT:-https://endpoints.omniatech.io/v1/arbitrum/sepolia/public}"
+
+    # Menetapkan variabel lingkungan
+    export NODE_ENV=testnet
+    export LOG_LEVEL=debug
+    export LOG_PRETTY=false
+    export ENABLED_NETWORKS='arbitrum-sepolia,base-sepolia,blast-sepolia,optimism-sepolia,l1rn'
+    export EXECUTOR_PROCESS_PENDING_ORDERS_FROM_API=false
+    export EXECUTOR_MAX_L3_GAS_PRICE="$EXECUTOR_MAX_L3_GAS_PRICE"
+
+    # Variabel lingkungan tambahan
+    export EXECUTOR_PROCESS_ORDERS=true
+    export EXECUTOR_PROCESS_CLAIMS=true
+    export RPC_ENDPOINTS_OPSP="$RPC_ENDPOINTS_OPSP"
+    export RPC_ENDPOINTS_BSSP="$RPC_ENDPOINTS_BSSP"
+    export RPC_ENDPOINTS_BLSS="$RPC_ENDPOINTS_BLSS"
+    export RPC_ENDPOINTS_ARBT="$RPC_ENDPOINTS_ARBT"
+
+    # Meminta pengguna memasukkan private key
+    read -p "Masukkan nilai PRIVATE_KEY_LOCAL: " PRIVATE_KEY_LOCAL
+
+    # Menetapkan variabel private key
+    export PRIVATE_KEY_LOCAL="$PRIVATE_KEY_LOCAL"
+
+    # Menghapus file arsip
+    echo "Menghapus file arsip..."
+    rm executor-linux-v0.29.0.tar.gz
+
+    # Berpindah ke direktori executor/bin
+    echo "Berpindah ke direktori dan menyiapkan pm2 untuk memulai executor..."
+    cd ~/executor/executor/bin
+
+    # Menggunakan pm2 untuk memulai executor
+    echo "Memulai executor menggunakan pm2..."
+    pm2 start ./executor --name "executor" --log "$LOGFILE" --env NODE_ENV=testnet
+
+    # Menampilkan daftar proses pm2
+    pm2 list
+
+    echo "Executor telah dimulai menggunakan pm2."
+
+    # Meminta pengguna menekan tombol apa saja untuk kembali ke menu utama
+    read -n 1 -s -r -p "Tekan tombol apa saja untuk kembali ke menu utama..."
+    main_menu
 }
 
-# Fungsi untuk membuat service systemd untuk Node 2
-create_systemd_service() {
-    SERVICE_FILE="/etc/systemd/system/executor_node2.service"
-    sudo bash -c "cat > $SERVICE_FILE" <<EOL
-[Unit]
-Description=Executor Node 2 Service
-After=network.target
-[Service]
-User=root
-WorkingDirectory=/root/executor/executor
-Environment="NODE_ENV=testnet"
-Environment="LOG_LEVEL=info"
-Environment="LOG_PRETTY=false"
-Environment="PRIVATE_KEY_LOCAL=0x$PRIVATE_KEY_LOCAL"
-Environment="ENABLED_NETWORKS=$ENABLED_NETWORKS"
-ExecStart=/root/executor/executor/bin/executor
-Restart=always
-RestartSec=3600 
-[Install]
-WantedBy=multi-user.target
-EOL
+# Fungsi untuk melihat log
+function view_logs() {
+    if [ -f "$LOGFILE" ]; then
+        echo "Menampilkan log secara real-time (tekan Ctrl+C untuk keluar):"
+        tail -f "$LOGFILE"  # Menggunakan tail -f untuk melacak log secara langsung
+    else
+        echo "File log tidak ditemukan."
+    fi
 }
 
-# Fungsi untuk memulai service Node 2
-start_service() {
-    sudo systemctl daemon-reload
-    sudo systemctl enable executor_node2.service
-    sudo systemctl start executor_node2.service
-    echo "Setup selesai! Service Executor Node 2 telah dibuat dan dijalankan."
-    echo "Anda dapat memeriksa status service menggunakan: sudo systemctl status executor_node2.service"
+# Fungsi untuk menghapus node
+function delete_node() {
+    echo "Sedang menghentikan proses node..."
+
+    # Menggunakan pm2 untuk menghentikan proses executor
+    pm2 stop "executor"
+
+    # Menghapus direktori tempat executor berada
+    if [ -d "$EXECUTOR_DIR" ]; then
+        echo "Sedang menghapus direktori node..."
+        rm -rf "$EXECUTOR_DIR"
+        echo "Direktori node telah dihapus."
+    else
+        echo "Direktori node tidak ditemukan, mungkin sudah dihapus."
+    fi
+
+    echo "Operasi penghapusan node selesai."
+
+    # Meminta pengguna menekan tombol apa saja untuk kembali ke menu utama
+    read -n 1 -s -r -p "Tekan tombol apa saja untuk kembali ke menu utama..."
+    main_menu
 }
 
-# Fungsi untuk menampilkan log dari service executor Node 2
-display_log() {
-    echo "Menampilkan log dari service executor Node 2:"
-    sudo journalctl -u executor_node2.service -f
-}
-
-# Menjalankan seluruh proses
-remove_old_service
-update_system
-download_and_extract_binary
-set_environment_variables
-set_private_key
-set_enabled_networks
-create_systemd_service
-start_service
-display_log
+# Memulai menu utama
+main_menu
