@@ -67,4 +67,5 @@ echo "Konfigurasi berhasil dibuat."
 echo "Menjalankan 0g DA Client Node..."
 docker run -d --env-file envfile.env --name 0g-da-client -v ./run:/runtime -p 51001:51001 0g-da-client combined
 
-echo "Node berhasil dijalankan! Gunakan 'docker logs -f 0g-da-client' untuk melihat log."
+echo "Node berhasil dijalankan! log real-time..."
+docker logs -f 0g-da-client
