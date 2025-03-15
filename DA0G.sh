@@ -49,3 +49,8 @@ docker build -t 0g-da-node .
 docker run -d --name 0g-da-node 0g-da-node
 
 echo "🎉 0G DA Node berhasil di-setup!"
+
+# 5. Cek Log Secara Real-Time
+echo "Menampilkan log real-time dari 0G DA Node..."
+sleep 5  # Tunggu sebentar agar container benar-benar mulai
+docker logs -f 0g-da-node
