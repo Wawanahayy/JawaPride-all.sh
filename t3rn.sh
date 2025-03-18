@@ -40,8 +40,6 @@ function main_menu() {
         clear
         display_colored_text  # Menampilkan header berwarna setiap kali menu muncul
         
-        echo "Skrip ini dibuat oleh komunitas besar, Twitter: @ferdie_jhovie, gratis dan open source, jangan percaya yang berbayar."
-        echo "Jika ada masalah, hubungi Twitter, hanya ada satu akun."
         echo "================================================================"
         echo "Untuk keluar dari skrip, tekan Ctrl + C pada keyboard."
         echo "Pilih operasi yang ingin dijalankan:"
