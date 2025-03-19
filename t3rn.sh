@@ -1,19 +1,9 @@
 #!/bin/bash
 
-# Jalur penyimpanan skrip
-SCRIPT_PATH="$HOME/t3rn.sh"
-LOGFILE="$HOME/executor/executor.log"
-EXECUTOR_DIR="$HOME/executor"
+set -e  # Hentikan skrip jika ada error
 
-# Periksa apakah skrip dijalankan sebagai root
-if [ "$(id -u)" != "0" ]; then
-    echo "Skrip ini harus dijalankan dengan hak akses root."
-    echo "Silakan coba gunakan perintah 'sudo -i' untuk beralih ke pengguna root, lalu jalankan kembali skrip ini."
-    exit 1
-fi
-
-# Fungsi untuk mencetak teks berwarna
-print_colored() {
+# Fungsi untuk menampilkan teks berwarna
+printf_colored() {
     local color_code=$1
     local text=$2
     echo -e "\033[${color_code}m${text}\033[0m"
@@ -34,193 +24,64 @@ display_colored_text() {
 display_colored_text
 sleep 5
 
-# Fungsi menu utama
-function main_menu() {
-    while true; do
-        clear
-        display_colored_text  # Menampilkan header berwarna setiap kali menu muncul
-        
-        echo "================================================================"
-        echo "Untuk keluar dari skrip, tekan Ctrl + C pada keyboard."
-        echo "Pilih operasi yang ingin dijalankan:"
-        echo "1) Jalankan skrip"
-        echo "2) Lihat log"
-        echo "3) Hapus node"
-        echo "5) Keluar"
+# Buat direktori t3rn
+echo "[1/6] Membuat direktori t3rn..."
+mkdir -p ~/t3rn && cd ~/t3rn
 
-        read -p "Masukkan pilihan Anda [1-3]: " choice
+# Download versi terbaru dari executor
+echo "[2/6] Mengunduh executor terbaru..."
+LATEST_TAG=$(curl -s https://api.github.com/repos/t3rn/executor-release/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
+wget -q https://github.com/t3rn/executor-release/releases/download/$LATEST_TAG/executor-linux-$LATEST_TAG.tar.gz
 
-        case $choice in
-            1)
-                execute_script
-                ;;
-            2)
-                view_logs
-                ;;
-            3)
-                delete_node
-                ;;
-            5)
-                echo "Keluar dari skrip."
-                exit 0
-                ;;
-            *)
-                echo "Pilihan tidak valid, silakan coba lagi."
-                ;;
-        esac
-    done
-}
+# Ekstrak binary
+echo "[3/6] Mengekstrak binary..."
+tar -xzf executor-linux-*.tar.gz
 
+# Konfigurasi RPC Endpoints
+echo "[4/6] Mengatur RPC Endpoints..."
+cat <<EOF | sudo tee /etc/t3rn-executor.env > /dev/null
+RPC_ENDPOINTS='{"l2rn": ["https://b2n.rpc.caldera.xyz/http"], "arbt": ["https://arbitrum-sepolia.drpc.org", "https://sepolia-rollup.arbitrum.io/rpc"], "bast": ["https://base-sepolia-rpc.publicnode.com", "https://base-sepolia.drpc.org"], "opst": ["https://sepolia.optimism.io", "https://optimism-sepolia.drpc.org"], "unit": ["https://unichain-sepolia.drpc.org", "https://sepolia.unichain.org"]}'
+EOF
 
-# Fungsi menjalankan skrip
-function execute_script() {
-    # Periksa apakah pm2 sudah terinstal, jika tidak, instal secara otomatis
-    if ! command -v pm2 &> /dev/null; then
-        echo "pm2 belum terinstal, menginstal pm2..."
-        sudo npm install -g pm2
-        if [ $? -eq 0 ]; then
-            echo "pm2 berhasil diinstal."
-        else
-            echo "Gagal menginstal pm2, periksa konfigurasi npm."
-            exit 1
-        fi
-    else
-        echo "pm2 sudah terinstal, lanjut eksekusi."
-    fi
+# Minta input Private Key dari user
+echo "[INFO] Masukkan Private Key Anda: "
+read -s PRIVATE_KEY  # Input private key tanpa terlihat
 
-    # Periksa apakah tar sudah terinstal, jika tidak, instal secara otomatis
-    if ! command -v tar &> /dev/null; then
-        echo "tar belum terinstal, menginstal tar..."
-        sudo apt-get update && sudo apt-get install -y tar
-        if [ $? -eq 0 ]; then
-            echo "tar berhasil diinstal."
-        else
-            echo "Gagal menginstal tar, periksa konfigurasi paket manajer."
-            exit 1
-        fi
-    else
-        echo "tar sudah terinstal, lanjut eksekusi."
-    fi
+# Buat service systemd
+echo "[5/6] Membuat systemd service..."
+cat <<EOF | sudo tee /etc/systemd/system/t3rn-executor.service > /dev/null
+[Unit]
+Description=t3rn Executor Service
+After=network.target
 
-    # Unduh versi terbaru executor
-    echo "Mengunduh versi terbaru dari executor..."
-    curl -s https://api.github.com/repos/t3rn/executor-release/releases/latest | \
-    grep -Po '"tag_name": "\K.*?(?=")' | \
-    xargs -I {} wget https://github.com/t3rn/executor-release/releases/download/{}/executor-linux-{}.tar.gz
+[Service]
+User=root
+WorkingDirectory=$HOME/t3rn/executor/executor/bin
+ExecStart=$HOME/t3rn/executor/executor/bin/executor
+Restart=always
+RestartSec=10
+Environment=ENVIRONMENT=testnet
+Environment=LOG_LEVEL=debug
+Environment=LOG_PRETTY=false
+Environment=EXECUTOR_PROCESS_BIDS_ENABLED=true
+Environment=EXECUTOR_PROCESS_ORDERS_ENABLED=true
+Environment=EXECUTOR_PROCESS_CLAIMS_ENABLED=true
+Environment=EXECUTOR_MAX_L3_GAS_PRICE=100
+Environment=PRIVATE_KEY_LOCAL=$PRIVATE_KEY
+Environment=ENABLED_NETWORKS=arbitrum-sepolia,base-sepolia,optimism-sepolia,l2rn
+EnvironmentFile=/etc/t3rn-executor.env
+Environment=EXECUTOR_PROCESS_PENDING_ORDERS_FROM_API=true
 
-    # Periksa apakah unduhan berhasil
-    if [ $? -eq 0 ]; then
-        echo "Unduhan berhasil."
-    else
-        echo "Unduhan gagal, periksa koneksi internet atau alamat unduhan."
-        exit 1
-    fi
+[Install]
+WantedBy=multi-user.target
+EOF
 
-    # Ekstrak file ke direktori saat ini
-    echo "Mengekstrak file..."
-    tar -xzf executor-linux-*.tar.gz
+# Reload dan mulai service
+echo "[6/6] Memulai service..."
+sudo systemctl daemon-reload
+sudo systemctl enable t3rn-executor.service
+sudo systemctl start t3rn-executor.service
 
-    # Periksa apakah ekstraksi berhasil
-    if [ $? -eq 0 ]; then
-        echo "Ekstraksi berhasil."
-    else
-        echo "Ekstraksi gagal, periksa file tar.gz."
-        exit 1
-    fi
-
-    # Periksa apakah ada file atau direktori 'executor'
-    echo "Memeriksa apakah file atau direktori 'executor' ditemukan..."
-    if ls | grep -q 'executor'; then
-        echo "Pemeriksaan berhasil, ditemukan file atau direktori 'executor'."
-    else
-        echo "Tidak ditemukan file atau direktori 'executor', periksa kembali."
-        exit 1
-    fi
-
-    # Minta pengguna memasukkan nilai untuk gas price, default 100
-    read -p "Masukkan nilai EXECUTOR_MAX_L3_GAS_PRICE [Default 100]: " EXECUTOR_MAX_L3_GAS_PRICE
-    EXECUTOR_MAX_L3_GAS_PRICE="${EXECUTOR_MAX_L3_GAS_PRICE:-100}"
-
-    # Atur variabel lingkungan
-    export ENVIRONMENT=testnet
-    export LOG_LEVEL=debug
-    export LOG_PRETTY=false
-    export ENABLED_NETWORKS='arbitrum-sepolia,base-sepolia,unichain-sepolia,optimism-sepolia,l2rn'
-    export EXECUTOR_PROCESS_PENDING_ORDERS_FROM_API=false
-    export EXECUTOR_MAX_L3_GAS_PRICE="$EXECUTOR_MAX_L3_GAS_PRICE"
-
-    # Variabel tambahan
-    export EXECUTOR_PROCESS_BIDS_ENABLED=true
-    export EXECUTOR_PROCESS_ORDERS_ENABLED=true
-    export EXECUTOR_PROCESS_CLAIMS_ENABLED=true
-    export RPC_ENDPOINTS='{
-    "l2rn": ["https://b2n.rpc.caldera.xyz/http"],
-    "arbt": ["https://arbitrum-sepolia.drpc.org", "https://sepolia-rollup.arbitrum.io/rpc"],
-    "bast": ["https://base-sepolia-rpc.publicnode.com", "https://base-sepolia.drpc.org"],
-    "opst": ["https://sepolia.optimism.io", "https://optimism-sepolia.drpc.org"],
-    "unit": ["https://unichain-sepolia.drpc.org", "https://sepolia.unichain.org"]
-    }'
-
-    # Minta pengguna memasukkan private key
-    read -p "Masukkan PRIVATE_KEY_LOCAL: " PRIVATE_KEY_LOCAL
-
-    # Atur private key sebagai variabel lingkungan
-    export PRIVATE_KEY_LOCAL="$PRIVATE_KEY_LOCAL"
-
-    # Hapus file tar.gz setelah ekstraksi
-    echo "Menghapus file arsip..."
-    rm executor-linux-*.tar.gz
-
-    # Pindah ke direktori executor/bin
-    echo "Berpindah ke direktori executor/bin..."
-    cd ~/executor/executor/bin
-
-    # Jalankan executor menggunakan pm2
-    echo "Menjalankan executor menggunakan pm2..."
-    pm2 start ./executor --name "executor" --log "$LOGFILE" --env NODE_ENV=testnet
-
-    # Tampilkan daftar proses pm2
-    pm2 list
-
-    echo "Executor berhasil dijalankan menggunakan pm2."
-
-    # Tunggu input dari pengguna sebelum kembali ke menu utama
-    read -n 1 -s -r -p "Tekan sembarang tombol untuk kembali ke menu utama..."
-    main_menu
-}
-
-# Fungsi melihat log
-function view_logs() {
-    if [ -f "$LOGFILE" ]; then
-        echo "Menampilkan log secara real-time (Tekan Ctrl+C untuk keluar):"
-        tail -f "$LOGFILE"
-    else
-        echo "Log tidak ditemukan."
-    fi
-}
-
-# Fungsi menghapus node
-function delete_node() {
-    echo "Menghentikan proses node..."
-
-    # Hentikan proses executor dengan pm2
-    pm2 stop "executor"
-
-    # Hapus direktori executor
-    if [ -d "$EXECUTOR_DIR" ]; then
-        echo "Menghapus direktori node..."
-        rm -rf "$EXECUTOR_DIR"
-        echo "Direktori node berhasil dihapus."
-    else
-        echo "Direktori node tidak ditemukan, mungkin sudah dihapus."
-    fi
-
-    echo "Node berhasil dihapus."
-
-    # Tunggu input sebelum kembali ke menu utama
-    read -n 1 -s -r -p "Tekan sembarang tombol untuk kembali ke menu utama..."
-    main_menu
-}
-
-# Jalankan menu utama
-main_menu
+# Cek status service dan tampilkan logs secara real-time
+echo "✅ Instalasi selesai! Menampilkan logs real-time..."
+sudo journalctl -u t3rn-executor.service -f --no-hostname -o cat
