@@ -11,13 +11,13 @@ printf_colored() {
 
 # Fungsi untuk menampilkan teks berwarna di bagian atas skrip
 display_colored_text() {
-    print_colored "42;30" "========================================================="
-    print_colored "46;30" "========================================================="
-    print_colored "45;97" "======================   T3RN   ========================="
-    print_colored "43;30" "============== create all by JAWA-PRIDE  ================"
-    print_colored "41;97" "=========== https://t.me/AirdropJP_JawaPride ============"
-    print_colored "44;30" "========================================================="
-    print_colored "42;97" "========================================================="
+    printf_colored "42;30" "========================================================="
+    printf_colored "46;30" "========================================================="
+    printf_colored "45;97" "======================   T3RN   ========================="
+    printf_colored "43;30" "============== create all by JAWA-PRIDE  ================"
+    printf_colored "41;97" "=========== https://t.me/AirdropJP_JawaPride ============"
+    printf_colored "44;30" "========================================================="
+    printf_colored "42;97" "========================================================="
 }
 
 # Tampilkan teks berwarna dan beri jeda hanya saat pertama kali dijalankan
