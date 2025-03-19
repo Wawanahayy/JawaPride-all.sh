@@ -72,9 +72,9 @@ function main_menu() {
 }
 
 
-# Fungsi untuk menjalankan skrip
+# Fungsi menjalankan skrip
 function execute_script() {
-    # Periksa apakah pm2 sudah terinstal, jika tidak, instal otomatis
+    # Periksa apakah pm2 sudah terinstal, jika tidak, instal secara otomatis
     if ! command -v pm2 &> /dev/null; then
         echo "pm2 belum terinstal, menginstal pm2..."
         sudo npm install -g pm2
@@ -85,11 +85,25 @@ function execute_script() {
             exit 1
         fi
     else
-        echo "pm2 sudah terinstal, lanjut menjalankan skrip."
+        echo "pm2 sudah terinstal, lanjut eksekusi."
     fi
 
-    # Unduh versi terbaru file
-    echo "Mengunduh versi terbaru executor..."
+    # Periksa apakah tar sudah terinstal, jika tidak, instal secara otomatis
+    if ! command -v tar &> /dev/null; then
+        echo "tar belum terinstal, menginstal tar..."
+        sudo apt-get update && sudo apt-get install -y tar
+        if [ $? -eq 0 ]; then
+            echo "tar berhasil diinstal."
+        else
+            echo "Gagal menginstal tar, periksa konfigurasi paket manajer."
+            exit 1
+        fi
+    else
+        echo "tar sudah terinstal, lanjut eksekusi."
+    fi
+
+    # Unduh versi terbaru executor
+    echo "Mengunduh versi terbaru dari executor..."
     curl -s https://api.github.com/repos/t3rn/executor-release/releases/latest | \
     grep -Po '"tag_name": "\K.*?(?=")' | \
     xargs -I {} wget https://github.com/t3rn/executor-release/releases/download/{}/executor-linux-{}.tar.gz
@@ -98,12 +112,12 @@ function execute_script() {
     if [ $? -eq 0 ]; then
         echo "Unduhan berhasil."
     else
-        echo "Unduhan gagal, periksa koneksi jaringan atau URL unduhan."
+        echo "Unduhan gagal, periksa koneksi internet atau alamat unduhan."
         exit 1
     fi
 
     # Ekstrak file ke direktori saat ini
-    echo "Menjalankan ekstraksi file..."
+    echo "Mengekstrak file..."
     tar -xzf executor-linux-*.tar.gz
 
     # Periksa apakah ekstraksi berhasil
@@ -114,20 +128,20 @@ function execute_script() {
         exit 1
     fi
 
-    # Periksa apakah file hasil ekstraksi mengandung kata 'executor'
-    echo "Memeriksa apakah file atau direktori hasil ekstraksi mengandung 'executor'..."
+    # Periksa apakah ada file atau direktori 'executor'
+    echo "Memeriksa apakah file atau direktori 'executor' ditemukan..."
     if ls | grep -q 'executor'; then
-        echo "File/direktori dengan 'executor' ditemukan."
+        echo "Pemeriksaan berhasil, ditemukan file atau direktori 'executor'."
     else
-        echo "Tidak ditemukan file atau direktori dengan 'executor', kemungkinan nama file tidak sesuai."
+        echo "Tidak ditemukan file atau direktori 'executor', periksa kembali."
         exit 1
     fi
 
-    # Meminta pengguna memasukkan nilai variabel lingkungan
-    read -p "Masukkan nilai EXECUTOR_MAX_L3_GAS_PRICE [default 100]: " EXECUTOR_MAX_L3_GAS_PRICE
+    # Minta pengguna memasukkan nilai untuk gas price, default 100
+    read -p "Masukkan nilai EXECUTOR_MAX_L3_GAS_PRICE [Default 100]: " EXECUTOR_MAX_L3_GAS_PRICE
     EXECUTOR_MAX_L3_GAS_PRICE="${EXECUTOR_MAX_L3_GAS_PRICE:-100}"
 
-    # Mengatur variabel lingkungan
+    # Atur variabel lingkungan
     export ENVIRONMENT=testnet
     export LOG_LEVEL=debug
     export LOG_PRETTY=false
@@ -147,64 +161,66 @@ function execute_script() {
     "unit": ["https://unichain-sepolia.drpc.org", "https://sepolia.unichain.org"]
     }'
 
-    # Meminta pengguna memasukkan private key
+    # Minta pengguna memasukkan private key
     read -p "Masukkan PRIVATE_KEY_LOCAL: " PRIVATE_KEY_LOCAL
+
+    # Atur private key sebagai variabel lingkungan
     export PRIVATE_KEY_LOCAL="$PRIVATE_KEY_LOCAL"
 
-    # Menghapus file arsip
-    echo "Menghapus file tar.gz..."
+    # Hapus file tar.gz setelah ekstraksi
+    echo "Menghapus file arsip..."
     rm executor-linux-*.tar.gz
 
-    # Beralih ke direktori executor/bin
-    echo "Beralih ke direktori dan memulai executor dengan pm2..."
+    # Pindah ke direktori executor/bin
+    echo "Berpindah ke direktori executor/bin..."
     cd ~/executor/executor/bin
 
-    # Menjalankan executor dengan pm2
-    echo "Menjalankan executor dengan pm2..."
+    # Jalankan executor menggunakan pm2
+    echo "Menjalankan executor menggunakan pm2..."
     pm2 start ./executor --name "executor" --log "$LOGFILE" --env NODE_ENV=testnet
 
-    # Menampilkan daftar proses pm2
+    # Tampilkan daftar proses pm2
     pm2 list
 
-    echo "executor telah dijalankan menggunakan pm2."
+    echo "Executor berhasil dijalankan menggunakan pm2."
 
-    # Tunggu input pengguna sebelum kembali ke menu utama
-    read -n 1 -s -r -p "Tekan tombol apapun untuk kembali ke menu utama..."
+    # Tunggu input dari pengguna sebelum kembali ke menu utama
+    read -n 1 -s -r -p "Tekan sembarang tombol untuk kembali ke menu utama..."
     main_menu
 }
 
-# Fungsi untuk melihat log
+# Fungsi melihat log
 function view_logs() {
     if [ -f "$LOGFILE" ]; then
-        echo "Menampilkan log secara real-time (tekan Ctrl+C untuk keluar):"
-        tail -f "$LOGFILE"  # Menggunakan tail -f untuk melihat log secara real-time
+        echo "Menampilkan log secara real-time (Tekan Ctrl+C untuk keluar):"
+        tail -f "$LOGFILE"
     else
-        echo "File log tidak ditemukan."
+        echo "Log tidak ditemukan."
     fi
 }
 
-# Fungsi untuk menghapus node
+# Fungsi menghapus node
 function delete_node() {
     echo "Menghentikan proses node..."
 
-    # Menghentikan proses executor dengan pm2
+    # Hentikan proses executor dengan pm2
     pm2 stop "executor"
 
-    # Menghapus direktori executor
+    # Hapus direktori executor
     if [ -d "$EXECUTOR_DIR" ]; then
         echo "Menghapus direktori node..."
         rm -rf "$EXECUTOR_DIR"
-        echo "Direktori node telah dihapus."
+        echo "Direktori node berhasil dihapus."
     else
-        echo "Direktori node tidak ditemukan, mungkin sudah dihapus sebelumnya."
+        echo "Direktori node tidak ditemukan, mungkin sudah dihapus."
     fi
 
-    echo "Penghapusan node selesai."
+    echo "Node berhasil dihapus."
 
-    # Tunggu input pengguna sebelum kembali ke menu utama
-    read -n 1 -s -r -p "Tekan tombol apapun untuk kembali ke menu utama..."
+    # Tunggu input sebelum kembali ke menu utama
+    read -n 1 -s -r -p "Tekan sembarang tombol untuk kembali ke menu utama..."
     main_menu
 }
 
-# Menjalankan menu utama
+# Jalankan menu utama
 main_menu
