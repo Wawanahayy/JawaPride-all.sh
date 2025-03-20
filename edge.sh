@@ -64,7 +64,34 @@ sleep 10
 echo "[8] Menjalankan Light Node..."
 cd ..
 go mod tidy
-go build
-./light-node &
+go build -o light-node main.go
 
-echo "✅ Light Node Berjalan! Cek status CLI di: dashboard.layeredge.io"
+# Konfigurasi systemd service
+echo "[9] Menyiapkan systemd service untuk Light Node..."
+cat <<EOF | sudo tee /etc/systemd/system/lightnode.service
+[Unit]
+Description=LayerEdge Light Node
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/light-node
+ExecStart=/root/light-node/light-node
+Restart=always
+RestartSec=5
+LimitNOFILE=1000000
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Reload systemd, enable, dan start service
+echo "[10] Menjalankan Light Node sebagai service..."
+sudo systemctl daemon-reload
+sudo systemctl enable lightnode.service
+sudo systemctl restart lightnode.service
+
+# Tampilkan logs service secara real-time
+echo "[11] Menampilkan logs Light Node..."
+journalctl -u lightnode.service -f
