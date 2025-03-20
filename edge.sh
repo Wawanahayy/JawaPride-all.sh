@@ -18,15 +18,15 @@ echo "[1] Mengupdate sistem & menginstal dependensi..."
 apt update && apt upgrade -y
 apt install -y curl git build-essential iptables ufw
 
-# Install Go
-echo "[2] Menginstal Go..."
-curl -OL https://golang.org/dl/go1.18.10.linux-amd64.tar.gz
-rm -rf /usr/local/go && tar -C /usr/local -xzf go1.18.10.linux-amd64.tar.gz
+# Install Go versi terbaru
+echo "[2] Menginstal Go versi terbaru..."
+wget https://go.dev/dl/go1.23.1.linux-amd64.tar.gz
+rm -rf /usr/local/go && tar -C /usr/local -xzf go1.23.1.linux-amd64.tar.gz
 echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
 source ~/.bashrc
 
-# Install Rust
-echo "[3] Menginstal Rust..."
+# Install Rust versi terbaru
+echo "[3] Menginstal Rust versi terbaru..."
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 source $HOME/.cargo/env
 
@@ -60,9 +60,10 @@ cargo build && cargo run &
 # Tunggu beberapa detik agar Merkle Service berjalan
 sleep 10
 
-# Jalankan Light Node
+# Build ulang dan jalankan Light Node
 echo "[8] Menjalankan Light Node..."
 cd ..
+go mod tidy
 go build
 ./light-node &
 
