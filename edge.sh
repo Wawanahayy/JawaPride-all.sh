@@ -1,8 +1,6 @@
 #!/bin/bash
 
-echo "========================================"
-echo "   LayerEdge Light Node Auto Setup 🚀   "
-echo "========================================"
+curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh | bash
 
 # Minta input private key
 read -p "Masukkan PRIVATE_KEY: " PRIVATE_KEY
