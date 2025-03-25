@@ -16,13 +16,12 @@ printf_colored() {
 
 # Fungsi untuk menampilkan teks berwarna di bagian atas skrip
 display_colored_text() {
-    printf_colored "42;30" "========================================================="
-    printf_colored "46;30" "========================================================="
-    printf_colored "45;97" "======================   T3RN   ========================="
-    printf_colored "43;30" "============== create all by JAWA-PRIDE  ================"
-    printf_colored "41;97" "=========== https://t.me/AirdropJP_JawaPride ============"
-    printf_colored "44;30" "========================================================="
-    printf_colored "42;97" "========================================================="
+    print_colored "40;96" "============================================================"  
+    print_colored "42;37" "=======================  J.W.P.A  ==========================" 
+    print_colored "45;97" "================= @AirdropJP_JawaPride =====================" 
+    print_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID =================" 
+    print_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID ==============" 
+    print_colored "44;30" "============================================================" 
 }
 
 # Fungsi menu utama
