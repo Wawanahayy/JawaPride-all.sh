@@ -65,6 +65,22 @@ function main_menu() {
     done
 }
 
+# Fungsi untuk melihat log Node Ritual (real-time, kembali ke menu jika tekan Enter)
+function view_logs() {
+    echo "Menampilkan log Node Ritual secara real-time..."
+    echo "Tekan ENTER untuk kembali ke menu utama."
+    
+    # Jalankan `docker logs -f` di background dan simpan PID-nya
+    docker logs -f infernet-node &
+    LOG_PID=$!
+
+    # Tunggu input ENTER dari pengguna
+    read -r
+
+    # Hentikan proses log saat ENTER ditekan
+    kill $LOG_PID
+}
+
 
 # Instal Node Ritual
 function install_ritual_node() {
