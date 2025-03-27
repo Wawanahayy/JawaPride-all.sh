@@ -168,4 +168,5 @@ interaksi_kontrak() {
 }
 
 # Jalankan menu utama
-menu_utama
+main_menu
+
