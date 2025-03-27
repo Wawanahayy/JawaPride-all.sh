@@ -7,19 +7,18 @@ printf_colored() {
     echo -e "\033[${color_code}m${text}\033[0m"
 }
 
-# Fungsi untuk menampilkan teks berwarna di bagian atas skrip
+# Fungsi untuk menampilkan header dengan teks berwarna
 display_colored_text() {
-    print_colored "40;96" "============================================================"  
-    print_colored "42;37" "=======================  J.W.P.A  ==========================" 
-    print_colored "45;97" "================= @AirdropJP_JawaPride =====================" 
-    print_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID =================" 
-    print_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID ==============" 
-    print_colored "44;30" "============================================================" 
+    printf_colored "40;96" "============================================================"  
+    printf_colored "42;37" "=======================  J.W.P.A  ==========================" 
+    printf_colored "45;97" "================= @AirdropJP_JawaPride =====================" 
+    printf_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID =================" 
+    printf_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID ==============" 
+    printf_colored "44;30" "============================================================" 
 }
 
-
 # Fungsi menu utama
-function main_menu() {
+main_menu() {
     while true; do
         clear
         display_colored_text
@@ -29,20 +28,14 @@ function main_menu() {
         echo "1) Deploy Kontrak"
         echo "2) Interaksi Kontrak"
         echo "3) Keluar"
-        read -p "Masukkan pilihan Anda: " pilihan
+        read -p "Masukkan pilihan Anda (1/2/3): " pilihan
 
         case $pilihan in
-            1)
-                deploy_kontrak
-                ;;
-            2)
-                interaksi_kontrak
-                ;;
-            3)
-                exit 0
-                ;;
-            *)
-                echo "Pilihan tidak valid, silakan coba lagi."
+            1) deploy_kontrak ;;
+            2) interaksi_kontrak ;;
+            3) echo "Keluar dari skrip..."; exit 0 ;;
+            *) 
+                echo "Pilihan tidak valid! Masukkan angka 1, 2, atau 3."
                 sleep 2
                 ;;
         esac
