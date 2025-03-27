@@ -7,18 +7,18 @@ printf_colored() {
     echo -e "\033[${color_code}m${text}\033[0m"
 }
 
-# Fungsi untuk menampilkan header dengan teks berwarna
+# Fungsi untuk menampilkan teks berwarna di bagian atas skrip
 display_colored_text() {
-    printf_colored "40;96" "============================================================"  
-    printf_colored "42;37" "=======================  J.W.P.A  ==========================" 
-    printf_colored "45;97" "================= @AirdropJP_JawaPride =====================" 
-    printf_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID =================" 
-    printf_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID ==============" 
-    printf_colored "44;30" "============================================================" 
+    printf_colored "40;96" "============================================================"
+    printf_colored "42;37" "=======================  J.W.P.A  =========================="
+    printf_colored "45;97" "================= @AirdropJP_JawaPride ====================="
+    printf_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID ================="
+    printf_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID =============="
+    printf_colored "44;30" "============================================================"
 }
 
 # Fungsi menu utama
-main_menu() {
+function menu_utama() {
     while true; do
         clear
         display_colored_text
@@ -28,14 +28,20 @@ main_menu() {
         echo "1) Deploy Kontrak"
         echo "2) Interaksi Kontrak"
         echo "3) Keluar"
-        read -p "Masukkan pilihan Anda (1/2/3): " pilihan
+        read -p "Masukkan pilihan Anda: " pilihan
 
         case $pilihan in
-            1) deploy_kontrak ;;
-            2) interaksi_kontrak ;;
-            3) echo "Keluar dari skrip..."; exit 0 ;;
-            *) 
-                echo "Pilihan tidak valid! Masukkan angka 1, 2, atau 3."
+            1)
+                deploy_kontrak
+                ;;
+            2)
+                interaksi_kontrak
+                ;;
+            3)
+                exit 0
+                ;;
+            *)
+                echo "Pilihan tidak valid, silakan coba lagi."
                 sleep 2
                 ;;
         esac
@@ -45,7 +51,7 @@ main_menu() {
 # Fungsi untuk deploy kontrak
 deploy_kontrak() {
     echo "Memulai deploy kontrak..."
-
+    
     # Periksa apakah Rust sudah terinstal
     if command -v rustc &> /dev/null
     then
@@ -63,62 +69,17 @@ deploy_kontrak() {
         echo "jq sudah terinstal, versi saat ini: $(jq --version)"
     else
         echo "jq belum terinstal, menginstal sekarang..."
-        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-            sudo apt-get update && sudo apt-get install -y jq
-        elif [[ "$OSTYPE" == "darwin"* ]]; then
-            brew install jq
-        else
-            echo "Sistem tidak didukung, silakan instal jq secara manual."
-            exit 1
-        fi
+        sudo apt-get update && sudo apt-get install -y jq
         echo "jq berhasil diinstal, versi saat ini: $(jq --version)"
-    fi
-
-    # Periksa apakah unzip sudah terinstal
-    if command -v unzip &> /dev/null
-    then
-        echo "unzip sudah terinstal."
-    else
-        echo "unzip belum terinstal, menginstal sekarang..."
-        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-            sudo apt-get update && sudo apt-get install -y unzip
-        elif [[ "$OSTYPE" == "darwin"* ]]; then
-            brew install unzip
-        else
-            echo "Sistem tidak didukung, silakan instal unzip secara manual."
-            exit 1
-        fi
-        echo "unzip berhasil diinstal."
     fi
 
     # Unduh dan jalankan skrip instalasi Seismic Foundry
     echo "Menginstal Seismic Foundry..."
-    curl -L \
-     -H "Accept: application/vnd.github.v3.raw" \
+    curl -L -H "Accept: application/vnd.github.v3.raw" \
      "https://api.github.com/repos/SeismicSystems/seismic-foundry/contents/sfoundryup/install?ref=seismic" | bash
 
-    # Dapatkan PATH baru setelah instalasi
-    NEW_PATH=$(bash -c 'source /root/.bashrc && echo $PATH')
-
-    # Perbarui PATH untuk sesi saat ini
-    export PATH="$NEW_PATH"
-
-    # Pastikan ~/.seismic/bin ada dalam PATH
-    if [[ ":$PATH:" != *":/root/.seismic/bin:"* ]]; then
-        export PATH="/root/.seismic/bin:$PATH"
-    fi
-
-    # Cetak PATH saat ini untuk memastikan sfoundryup tersedia
-    echo "PATH saat ini: $PATH"
-
-    # Periksa apakah sfoundryup sudah terinstal
-    if command -v sfoundryup &> /dev/null
-    then
-        echo "sfoundryup berhasil diinstal!"
-    else
-        echo "sfoundryup gagal diinstal, periksa langkah instalasi."
-        exit 1
-    fi
+    # Perbarui PATH
+    export PATH="$HOME/.seismic/bin:$PATH"
 
     # Jalankan sfoundryup
     echo "Menjalankan sfoundryup..."
@@ -126,18 +87,11 @@ deploy_kontrak() {
 
     # Clone repository SeismicSystems/try-devnet jika belum ada
     if [ ! -d "try-devnet" ]; then
-        echo "Mengkloning repository SeismicSystems/try-devnet..."
         git clone --recurse-submodules https://github.com/SeismicSystems/try-devnet.git
-    else
-        echo "Repository try-devnet sudah ada, melewati proses kloning."
     fi
     cd try-devnet/packages/contract/
-
-    # Jalankan skrip deploy
-    echo "Menjalankan skrip deploy kontrak..."
     bash script/deploy.sh
 
-    # Tunggu input sebelum kembali ke menu utama
     echo "Deploy kontrak selesai, tekan tombol apa saja untuk kembali ke menu utama..."
     read -n 1 -s
 }
@@ -149,24 +103,16 @@ interaksi_kontrak() {
     # Instal Bun
     echo "Menginstal Bun..."
     curl -fsSL https://bun.sh/install | bash
+    source ~/.bashrc
     
-    # Pastikan Bun tersedia
-    source ~/.bashrc  # Perbarui lingkungan shell
-    
-    # Instal dependensi dengan Bun
-    echo "Menginstal dependensi Bun..."
+    # Instal dependensi
     cd /root/try-devnet/packages/cli/
     bun install
-    
-    # Jalankan skrip transaksi
-    echo "Menjalankan skrip interaksi kontrak..."
     bash script/transact.sh
 
-    # Tunggu input sebelum kembali ke menu utama
     echo "Interaksi kontrak selesai, tekan tombol apa saja untuk kembali ke menu utama..."
     read -n 1 -s
 }
 
 # Jalankan menu utama
-main_menu
-
+menu_utama
