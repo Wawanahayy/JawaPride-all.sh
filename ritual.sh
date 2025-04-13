@@ -156,7 +156,7 @@ After=network.target
 [Service]
 User=root
 WorkingDirectory=/root/infernet-container-starter
-ExecStart=/usr/bin/bash -c "cd /root/infernet-container-starter && /usr/bin/make project=hello-world deploy-container"
+ExecStart=/usr/bin/bash -c "cd /root/infernet-container-starter && /usr/bin/make project=hello-world deploy-container && /usr/bin/docker-compose -f deploy/docker-compose.yaml up -d"
 Restart=always
 RestartSec=30
 StandardOutput=append:/root/ritual-deployment.log
