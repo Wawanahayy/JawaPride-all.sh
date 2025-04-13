@@ -151,83 +151,25 @@ install_ritual_node() {
     fi
 
     # Menyimpan private key dan konfigurasi ke file config.json
-    cat > ~/infernet-container-starter/deploy/config.json << EOL
-    {
-        "log_path": "infernet_node.log",
-        "server": {
-            "port": 4000,
-            "rate_limit": {
-                "num_requests": 100,
-                "period": 100
-            }
-        },
-        "chain": {
-            "enabled": true,
-            "trail_head_blocks": 3,
-            "rpc_url": "https://mainnet.base.org/",
-            "registry_address": "0x3B1554f346DFe5c482Bb4BA31b880c1C18412170",
-            "wallet": {
-              "max_gas_limit": 4000000,
-              "private_key": "${private_key}",
-              "allowed_sim_errors": []
-            },
-            "snapshot_sync": {
-              "sleep": 3,
-              "batch_size": 10000,
-              "starting_sub_id": 180000,
-              "sync_period": 30
-            }
-        },
-        "startup_wait": 1.0,
-        "redis": {
-            "host": "redis",
-            "port": 6379
-        },
-        "forward_stats": true,
-        "containers": [
-            {
-                "id": "hello-world",
-                "image": "ritualnetwork/hello-world-infernet:latest",
-                "external": true,
-                "port": "3000",
-                "allowed_delegate_addresses": [],
-                "allowed_addresses": [],
-                "allowed_ips": [],
-                "command": "--bind=0.0.0.0:3000 --workers=2",
-                "env": {},
-                "volumes": [],
-                "accepted_payments": {},
-                "generates_proofs": false
-            }
-        ]
-    }
-    EOL
-
-    # Salin konfigurasi ke folder container
-    cp ~/infernet-container-starter/deploy/config.json ~/infernet-container-starter/projects/hello-world/container/config.json
-
-    echo "Membuat systemd service untuk Ritual Network..."
-    cd ~/infernet-container-starter
-
     cat > ~/ritual-service.sh << EOL
-    #!/bin/bash
-    cd ~/infernet-container-starter
-    echo "Mulai deploy container pada \$(date)" > ~/ritual-deployment.log
-    project=hello-world make deploy-container >> ~/ritual-deployment.log 2>&1
-    echo "Deploy container selesai pada \$(date)" >> ~/ritual-deployment.log
+#!/bin/bash
+cd ~/infernet-container-starter
+echo "Mulai deploy container pada \$(date)" > ~/ritual-deployment.log
+project=hello-world make deploy-container >> ~/ritual-deployment.log 2>&1
+echo "Deploy container selesai pada \$(date)" >> ~/ritual-deployment.log
 
-    # Keep containers running
-    cd ~/infernet-container-starter
-    while true; do
-      echo "Memeriksa container pada \$(date)" >> ~/ritual-deployment.log
-      if ! docker ps | grep -q "infernet"; then
-        echo "Container berhenti. Restarting pada \$(date)" >> ~/ritual-deployment.log
-        docker compose -f deploy/docker-compose.yaml up -d >> ~/ritual-deployment.log 2>&1
-      else
-        echo "Container berjalan dengan normal pada \$(date)" >> ~/ritual-deployment.log
-      fi
-      sleep 300
-    done
+# Keep containers running
+cd ~/infernet-container-starter
+while true; do
+  echo "Memeriksa container pada \$(date)" >> ~/ritual-deployment.log
+  if ! docker ps | grep -q "infernet"; then
+    echo "Container berhenti. Restarting pada \$(date)" >> ~/ritual-deployment.log
+    docker compose -f deploy/docker-compose.yaml up -d >> ~/ritual-deployment.log 2>&1
+  else
+    echo "Container berjalan dengan normal pada \$(date)" >> ~/ritual-deployment.log
+  fi
+  sleep 300
+done
     EOL
 
     chmod +x ~/ritual-service.sh
