@@ -193,9 +193,9 @@ EOL
     # Menjalankan docker-compose setelah membuat service systemd
     echo "Menjalankan Docker Compose secara langsung..."
     cd /root/infernet-container-starter
- docker-compose -f deploy/docker-compose.yaml up -d
  docker-compose down
  docker-compose up --build
+ docker-compose -f deploy/docker-compose.yaml up -d
     echo "Docker Compose dijalankan."
     echo "Node Ritual berhasil dipasang dan dijalankan via docker"
 }
@@ -210,7 +210,8 @@ remove_ritual_node() {
     systemctl disable ritual-node
     rm /etc/systemd/system/ritual-node.service
     systemctl daemon-reload
-    docker rm -f $(docker ps -aq)
+    docker stop infernet-node root_infernet-fluentbit_1 infernet-redis infernet-anvil infernet-fluentbit
+    docker rm infernet-node root_infernet-fluentbit_1 infernet-redis infernet-anvil infernet-fluentbit
     rm -rf ~/infernet-container-starter ~/ritual-deployment.log
     echo "Node Ritual berhasil dihapus."
 }
