@@ -64,79 +64,78 @@ function main_menu() {
     done
 }
 
-# Fungsi instalasi Node Ritual
 install_ritual_node() {
+    echo "Memulai instalasi Node Ritual..."
 
+    # Mengaktifkan dan mengonfigurasi firewall
     sudo ufw allow ssh
     sudo ufw enable
     sudo ufw status
 
-    # Periksa apakah Docker sudah terpasang
+    # Memeriksa apakah Docker sudah terpasang
     if ! command -v docker &> /dev/null; then
-      echo "Docker tidak terpasang. Menginstal Docker..."
-      sudo apt-get update
-      sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
-      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-      echo \
-        "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-        $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-      sudo apt-get update
-      sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-      sudo docker run hello-world
+        echo "Docker tidak terpasang. Menginstal Docker..."
+        sudo apt-get update
+        sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+        echo \
+            "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+            $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        sudo apt-get update
+        sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+        sudo docker run hello-world
+        echo "Docker berhasil diinstal."
     else
-      echo "Docker sudah terpasang."
+        echo "Docker sudah terpasang."
     fi
 
-    # Periksa apakah Docker Compose sudah terpasang
+    # Memeriksa dan menginstal Docker Compose
     if ! command -v docker-compose &> /dev/null; then
-      echo "Docker Compose tidak terpasang. Menginstal Docker Compose..."
-      sudo curl -L "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-      sudo chmod +x /usr/local/bin/docker-compose
-      DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
-      mkdir -p $DOCKER_CONFIG/cli-plugins
-      curl -SL https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
-      chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
-      docker compose version
-      sudo usermod -aG docker $USER
-      docker run hello-world
+        echo "Docker Compose tidak terpasang. Menginstal Docker Compose..."
+        sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
+        echo "Docker Compose berhasil diinstal."
     else
-      echo "Docker Compose sudah terpasang."
+        echo "Docker Compose sudah terpasang."
     fi
 
-    # Periksa apakah git sudah terpasang
+    # Memeriksa dan menginstal Git
     if ! command -v git &> /dev/null; then
-      echo "Git tidak terpasang. Menginstal Git..."
-      sudo apt update
-      sudo apt install git -y
+        echo "Git tidak terpasang. Menginstal Git..."
+        sudo apt-get install -y git
+        echo "Git berhasil diinstal."
     else
-      echo "Git sudah terpasang."
+        echo "Git sudah terpasang."
     fi
 
-    # Periksa apakah jq sudah terpasang
+    # Memeriksa dan menginstal jq
     if ! command -v jq &> /dev/null; then
-      echo "jq tidak terpasang. Menginstal jq..."
-      sudo apt install jq -y
+        echo "jq tidak terpasang. Menginstal jq..."
+        sudo apt-get install -y jq
+        echo "jq berhasil diinstal."
     else
-      echo "jq sudah terpasang."
+        echo "jq sudah terpasang."
     fi
 
-    # Periksa apakah lz4 sudah terpasang
+    # Memeriksa dan menginstal lz4
     if ! command -v lz4 &> /dev/null; then
-      echo "lz4 tidak terpasang. Menginstal lz4..."
-      sudo apt install lz4 -y
+        echo "lz4 tidak terpasang. Menginstal lz4..."
+        sudo apt-get install -y lz4
+        echo "lz4 berhasil diinstal."
     else
-      echo "lz4 sudah terpasang."
+        echo "lz4 sudah terpasang."
     fi
 
-    # Install screen jika belum ada
+    # Memeriksa dan menginstal screen
     if ! command -v screen &> /dev/null; then
-      echo "screen tidak terpasang. Menginstal screen..."
-      sudo apt install screen -y
+        echo "screen tidak terpasang. Menginstal screen..."
+        sudo apt-get install -y screen
+        echo "screen berhasil diinstal."
     else
-      echo "screen sudah terpasang."
+        echo "screen sudah terpasang."
     fi
 
-    # Clone Repository
+    # Meng-clone repository
     echo "Meng-clone repository..."
     git clone https://github.com/ritual-net/infernet-container-starter
     cd infernet-container-starter
@@ -147,89 +146,89 @@ install_ritual_node() {
     echo "Private key diterima (tersembunyi untuk keamanan)"
 
     if [[ ! $private_key =~ ^0x ]]; then
-      private_key="0x$private_key"
-      echo "Menambahkan prefix 0x ke private key"
+        private_key="0x$private_key"
+        echo "Menambahkan prefix 0x ke private key"
     fi
 
+    # Menyimpan private key dan konfigurasi ke file config.json
     cat > ~/infernet-container-starter/deploy/config.json << EOL
-{
-    "log_path": "infernet_node.log",
-    "server": {
-        "port": 4000,
-        "rate_limit": {
-            "num_requests": 100,
-            "period": 100
-        }
-    },
-    "chain": {
-        "enabled": true,
-        "trail_head_blocks": 3,
-        "rpc_url": "https://mainnet.base.org/",
-        "registry_address": "0x3B1554f346DFe5c482Bb4BA31b880c1C18412170",
-        "wallet": {
-          "max_gas_limit": 4000000,
-          "private_key": "${private_key}",
-          "allowed_sim_errors": []
+    {
+        "log_path": "infernet_node.log",
+        "server": {
+            "port": 4000,
+            "rate_limit": {
+                "num_requests": 100,
+                "period": 100
+            }
         },
-        "snapshot_sync": {
-          "sleep": 3,
-          "batch_size": 10000,
-          "starting_sub_id": 180000,
-          "sync_period": 30
-        }
-    },
-    "startup_wait": 1.0,
-    "redis": {
-        "host": "redis",
-        "port": 6379
-    },
-    "forward_stats": true,
-    "containers": [
-        {
-            "id": "hello-world",
-            "image": "ritualnetwork/hello-world-infernet:latest",
-            "external": true,
-            "port": "3000",
-            "allowed_delegate_addresses": [],
-            "allowed_addresses": [],
-            "allowed_ips": [],
-            "command": "--bind=0.0.0.0:3000 --workers=2",
-            "env": {},
-            "volumes": [],
-            "accepted_payments": {},
-            "generates_proofs": false
-        }
-    ]
-}
-EOL
+        "chain": {
+            "enabled": true,
+            "trail_head_blocks": 3,
+            "rpc_url": "https://mainnet.base.org/",
+            "registry_address": "0x3B1554f346DFe5c482Bb4BA31b880c1C18412170",
+            "wallet": {
+              "max_gas_limit": 4000000,
+              "private_key": "${private_key}",
+              "allowed_sim_errors": []
+            },
+            "snapshot_sync": {
+              "sleep": 3,
+              "batch_size": 10000,
+              "starting_sub_id": 180000,
+              "sync_period": 30
+            }
+        },
+        "startup_wait": 1.0,
+        "redis": {
+            "host": "redis",
+            "port": 6379
+        },
+        "forward_stats": true,
+        "containers": [
+            {
+                "id": "hello-world",
+                "image": "ritualnetwork/hello-world-infernet:latest",
+                "external": true,
+                "port": "3000",
+                "allowed_delegate_addresses": [],
+                "allowed_addresses": [],
+                "allowed_ips": [],
+                "command": "--bind=0.0.0.0:3000 --workers=2",
+                "env": {},
+                "volumes": [],
+                "accepted_payments": {},
+                "generates_proofs": false
+            }
+        ]
+    }
+    EOL
 
     # Salin konfigurasi ke folder container
     cp ~/infernet-container-starter/deploy/config.json ~/infernet-container-starter/projects/hello-world/container/config.json
 
-    # Deploy container menggunakan systemd
     echo "Membuat systemd service untuk Ritual Network..."
     cd ~/infernet-container-starter
 
     cat > ~/ritual-service.sh << EOL
-#!/bin/bash
-cd ~/infernet-container-starter
-echo "Mulai deploy container pada \$(date)" > ~/ritual-deployment.log
-project=hello-world make deploy-container >> ~/ritual-deployment.log 2>&1
-echo "Deploy container selesai pada \$(date)" >> ~/ritual-deployment.log
+    #!/bin/bash
+    cd ~/infernet-container-starter
+    echo "Mulai deploy container pada \$(date)" > ~/ritual-deployment.log
+    project=hello-world make deploy-container >> ~/ritual-deployment.log 2>&1
+    echo "Deploy container selesai pada \$(date)" >> ~/ritual-deployment.log
 
-# Keep containers running
-cd ~/infernet-container-starter
-while true; do
-  echo "Memeriksa container pada \$(date)" >> ~/ritual-deployment.log
-  if ! docker ps | grep -q "infernet"; then
-    echo "Container berhenti. Restarting pada \$(date)" >> ~/ritual-deployment.log
-    docker compose -f deploy/docker-compose.yaml up -d >> ~/ritual-deployment.log 2>&1
-  else
-    echo "Container berjalan dengan normal pada \$(date)" >> ~/ritual-deployment.log
-  fi
-  sleep 300
-done
-EOL
+    # Keep containers running
+    cd ~/infernet-container-starter
+    while true; do
+      echo "Memeriksa container pada \$(date)" >> ~/ritual-deployment.log
+      if ! docker ps | grep -q "infernet"; then
+        echo "Container berhenti. Restarting pada \$(date)" >> ~/ritual-deployment.log
+        docker compose -f deploy/docker-compose.yaml up -d >> ~/ritual-deployment.log 2>&1
+      else
+        echo "Container berjalan dengan normal pada \$(date)" >> ~/ritual-deployment.log
+      fi
+      sleep 300
+    done
+    EOL
 
     chmod +x ~/ritual-service.sh
     nohup bash ~/ritual-service.sh &
