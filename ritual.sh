@@ -71,83 +71,83 @@ function main_menu() {
 
 # Fungsi untuk menginstal Node Ritual
 install_ritual_node() {
-    echo "Instalasi Ritual Network dimulai..."
+    echo "Instalasi Ritual Network dimulai..." | tee -a ~/ritual-install.log
 
     sudo ufw allow ssh
     sudo ufw enable
-    sudo ufw status
+    sudo ufw status | tee -a ~/ritual-install.log
 
     # Cek apakah Docker sudah terinstal
     if ! command -v docker &> /dev/null; then
-      echo "Docker tidak terinstal. Menginstal Docker..."
-      sudo apt-get update
-      sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
-      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+      echo "Docker tidak terinstal. Menginstal Docker..." | tee -a ~/ritual-install.log
+      sudo apt-get update | tee -a ~/ritual-install.log
+      sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release | tee -a ~/ritual-install.log
+      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg | tee -a ~/ritual-install.log
       echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-        $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-      sudo apt-get update
-      sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-      sudo docker run hello-world
+        $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null | tee -a ~/ritual-install.log
+      sudo apt-get update | tee -a ~/ritual-install.log
+      sudo apt-get install -y docker-ce docker-ce-cli containerd.io | tee -a ~/ritual-install.log
+      sudo docker run hello-world | tee -a ~/ritual-install.log
     else
-      echo "Docker sudah terinstal."
+      echo "Docker sudah terinstal." | tee -a ~/ritual-install.log
     fi
 
     # Cek apakah Docker Compose sudah terinstal
     if ! command -v docker-compose &> /dev/null; then
-      echo "Docker Compose tidak terinstal. Menginstal Docker Compose..."
-      sudo curl -L "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-      sudo chmod +x /usr/local/bin/docker-compose
+      echo "Docker Compose tidak terinstal. Menginstal Docker Compose..." | tee -a ~/ritual-install.log
+      sudo curl -L "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose | tee -a ~/ritual-install.log
+      sudo chmod +x /usr/local/bin/docker-compose | tee -a ~/ritual-install.log
       DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
       mkdir -p $DOCKER_CONFIG/cli-plugins
-      curl -SL https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
-      chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
-      docker compose version
-      sudo usermod -aG docker $USER
-      docker run hello-world
+      curl -SL https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose | tee -a ~/ritual-install.log
+      chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose | tee -a ~/ritual-install.log
+      docker compose version | tee -a ~/ritual-install.log
+      sudo usermod -aG docker $USER | tee -a ~/ritual-install.log
+      docker run hello-world | tee -a ~/ritual-install.log
     else
-      echo "Docker Compose sudah terinstal."
+      echo "Docker Compose sudah terinstal." | tee -a ~/ritual-install.log
     fi
 
     # Memastikan git terinstal
     if ! command -v git &> /dev/null; then
-      echo "Git tidak terinstal. Menginstal Git..."
-      sudo apt update
-      sudo apt install git -y
+      echo "Git tidak terinstal. Menginstal Git..." | tee -a ~/ritual-install.log
+      sudo apt update | tee -a ~/ritual-install.log
+      sudo apt install git -y | tee -a ~/ritual-install.log
     else
-      echo "Git sudah terinstal."
+      echo "Git sudah terinstal." | tee -a ~/ritual-install.log
     fi
 
     # Memastikan jq terinstal
     if ! command -v jq &> /dev/null; then
-      echo "jq tidak terinstal. Menginstal jq..."
-      sudo apt install jq -y
+      echo "jq tidak terinstal. Menginstal jq..." | tee -a ~/ritual-install.log
+      sudo apt install jq -y | tee -a ~/ritual-install.log
     else
-      echo "jq sudah terinstal."
+      echo "jq sudah terinstal." | tee -a ~/ritual-install.log
     fi
 
     # Memastikan lz4 terinstal
     if ! command -v lz4 &> /dev/null; then
-      echo "lz4 tidak terinstal. Menginstal lz4..."
-      sudo apt install lz4 -y
+      echo "lz4 tidak terinstal. Menginstal lz4..." | tee -a ~/ritual-install.log
+      sudo apt install lz4 -y | tee -a ~/ritual-install.log
     else
-      echo "lz4 sudah terinstal."
+      echo "lz4 sudah terinstal." | tee -a ~/ritual-install.log
     fi
 
     # Memastikan screen terinstal
     if ! command -v screen &> /dev/null; then
-      echo "screen tidak terinstal. Menginstal screen..."
-      sudo apt install screen -y
+      echo "screen tidak terinstal. Menginstal screen..." | tee -a ~/ritual-install.log
+      sudo apt install screen -y | tee -a ~/ritual-install.log
     else
-      echo "screen sudah terinstal."
+      echo "screen sudah terinstal." | tee -a ~/ritual-install.log
     fi
 
     # Kloning repositori
-    echo "Mengkloning repositori..."
-    git clone https://github.com/ritual-net/infernet-container-starter
+    echo "Mengkloning repositori..." | tee -a ~/ritual-install.log
+    git clone https://github.com/ritual-net/infernet-container-starter | tee -a ~/ritual-install.log
     cd infernet-container-starter
 
     # Membuat file konfigurasi
-    echo "Membuat file konfigurasi..."
+    echo "Membuat file konfigurasi..." | tee -a ~/ritual-install.log
 
     # Meminta private key
     echo "Masukkan Private Key Metamask"
@@ -207,79 +207,33 @@ install_ritual_node() {
                 "env": {},
                 "volumes": [],
                 "accepted_payments": {},
-                "generates_proofs": false
+                "generous_spend": false,
+                "monitoring": {}
             }
         ]
     }
-EOL
+    EOL
 
-    # Menyalin konfigurasi ke folder kontainer
-    cp ~/infernet-container-starter/deploy/config.json ~/infernet-container-starter/projects/hello-world/container/config.json
+    # Menyiapkan systemd service
+    echo "Menyiapkan layanan systemd..." | tee -a ~/ritual-install.log
+    sudo cp ~/infernet-container-starter/ritual-service.sh /root/ritual-service.sh
+    sudo cp ~/infernet-container-starter/ritual-network.service /etc/systemd/system/ritual-network.service
 
-    # Deploy kontainer menggunakan systemd
-    echo "Membuat layanan systemd untuk Ritual Network..."
-    cd ~/infernet-container-starter
-
-    # Membuat script untuk dijalankan oleh systemd
-    cat > ~/ritual-service.sh << EOL
-    #!/bin/bash
-    cd ~/infernet-container-starter
-    echo "Memulai deployment kontainer pada \$(date)" > ~/ritual-deployment.log
-    project=hello-world make deploy-container >> ~/ritual-deployment.log 2>&1
-    echo "Deployment kontainer selesai pada \$(date)" >> ~/ritual-deployment.log
-
-    # Memastikan kontainer tetap berjalan
-    cd ~/infernet-container-starter
-    while true; do
-      echo "Memeriksa kontainer pada \$(date)" >> ~/ritual-deployment.log
-      if ! docker ps | grep -q "infernet"; then
-        echo "Kontainer berhenti. Menjalankan ulang pada \$(date)" >> ~/ritual-deployment.log
-        docker compose -f deploy/docker-compose.yaml up -d >> ~/ritual-deployment.log 2>&1
-      else
-        echo "Kontainer berjalan dengan baik pada \$(date)" >> ~/ritual-deployment.log
-      fi
-      sleep 300
-    done
-EOL
-
-    chmod +x ~/ritual-service.sh
-
-    # Membuat file layanan systemd
-    sudo tee /etc/systemd/system/ritual-network.service > /dev/null << EOL
-    [Unit]
-    Description=Ritual Network Infernet Service
-    After=network.target docker.service
-    Requires=docker.service
-
-    [Service]
-    Type=simple
-    User=root
-    ExecStart=/bin/bash /root/ritual-service.sh
-    Restart=always
-    RestartSec=30
-    StandardOutput=append:/root/ritual-service.log
-    StandardError=append:/root/ritual-service.log
-
-    [Install]
-    WantedBy=multi-user.target
-EOL
-
-    # Memuat ulang dan memulai layanan
     sudo systemctl daemon-reload
     sudo systemctl enable ritual-network.service
     sudo systemctl start ritual-network.service
 
-    echo "Instalasi selesai! Layanan Ritual Network telah dimulai."
+    echo "Instalasi selesai! Layanan Ritual Network telah dimulai." | tee -a ~/ritual-install.log
 }
 
-# Menampilkan log
+# Fungsi untuk melihat log
 view_logs() {
-    tail -f ~/ritual-deployment.log
+    tail -f ~/ritual-install.log
 }
 
-# Menghapus node Ritual
+# Fungsi untuk menghapus node Ritual
 remove_ritual_node() {
-    echo "Menghapus node Ritual Network..."
+    echo "Menghapus node Ritual Network..." | tee -a ~/ritual-install.log
 
     sudo systemctl stop ritual-network.service
     sudo systemctl disable ritual-network.service
@@ -289,7 +243,7 @@ remove_ritual_node() {
     sudo rm -f /root/ritual-service.sh
     sudo rm -f /etc/systemd/system/ritual-network.service
 
-    echo "Node Ritual Network telah dihapus."
+    echo "Node Ritual Network telah dihapus." | tee -a ~/ritual-install.log
 }
 
 # Menjalankan menu utama
