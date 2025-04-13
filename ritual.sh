@@ -144,13 +144,14 @@ EOL
 
     cat > /etc/systemd/system/ritual-node.service <<EOL
 [Unit]
+[Unit]
 Description=Ritual Infernet Node
 After=network.target
 
 [Service]
 User=root
 WorkingDirectory=/root/infernet-container-starter
-ExecStart=/usr/bin/make deploy-container project=hello-world
+ExecStart=/usr/bin/make project=hello-world deploy-container
 Restart=always
 RestartSec=10
 StandardOutput=append:/root/ritual-deployment.log
