@@ -193,7 +193,7 @@ EOL
     # Menjalankan docker-compose setelah membuat service systemd
     echo "Menjalankan Docker Compose secara langsung..."
     cd /root/infernet-container-starter
-    docker compose -f deploy/docker-compose.yaml up -d
+ docker-compose -f deploy/docker-compose.yaml up -d
     echo "Docker Compose dijalankan."
     echo "Node Ritual berhasil dipasang dan dijalankan via docker"
 }
