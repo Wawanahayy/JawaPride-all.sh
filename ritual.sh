@@ -16,12 +16,12 @@ printf_colored() {
 
 # Fungsi untuk menampilkan teks berwarna di bagian atas skrip
 display_colored_text() {
-    print_colored "40;96" "============================================================"  
-    print_colored "42;37" "=======================  J.W.P.A  ==========================" 
-    print_colored "45;97" "================= @AirdropJP_JawaPride =====================" 
-    print_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID =================" 
-    print_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID ==============" 
-    print_colored "44;30" "============================================================" 
+    printf_colored "40;96" "============================================================"
+    printf_colored "42;37" "=======================  J.W.P.A  =========================="
+    printf_colored "45;97" "================= @AirdropJP_JawaPride ====================="
+    printf_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID ================="
+    printf_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID =============="
+    printf_colored "44;30" "============================================================"
 }
 
 # Fungsi menu utama
@@ -64,7 +64,17 @@ function main_menu() {
     done
 }
 
-
+# Cek dan jalankan anvil jika belum aktif
+function ensure_anvil_running() {
+    if ! pgrep -x anvil > /dev/null; then
+        echo "anvil belum berjalan. Menjalankan anvil di port 8545..."
+        nohup anvil --host 0.0.0.0 --port 8545 > /dev/null 2>&1 &
+        sleep 2
+        echo "anvil telah dijalankan."
+    else
+        echo "anvil sudah berjalan."
+    fi
+}
 
 # Instal Node Ritual
 function install_ritual_node() {
@@ -99,7 +109,11 @@ function install_ritual_node() {
 
     # Clone repositori Git dan konfigurasi
     echo "Mengunduh repositori dari GitHub..."
-    git clone https://github.com/ritual-net/infernet-container-starter ~/infernet-container-starter
+    if [ ! -d "~/infernet-container-starter/.git" ]; then
+        git clone https://github.com/ritual-net/infernet-container-starter ~/infernet-container-starter
+    else
+        echo "Repositori sudah ada. Melewati clone."
+    fi
     cd ~/infernet-container-starter
 
     # Meminta pengguna untuk memasukkan kunci pribadi secara tersembunyi
@@ -170,7 +184,7 @@ EOL
     # Memuat ulang variabel lingkungan
     source ~/.bashrc
 
-    # Menunggu variabel lingkungan diterapkan
+    # Menunggu variabel lingkungan Foundry diterapkan
     echo "Menunggu variabel lingkungan Foundry diterapkan..."
     sleep 2
 
@@ -209,6 +223,9 @@ EOL
     cd ~/infernet-container-starter
     docker compose -f deploy/docker-compose.yaml up -d
     echo "Docker Compose berhasil dijalankan!"
+
+    # Pastikan anvil aktif sebelum deploy
+    ensure_anvil_running
 
     # Deploy kontrak
     echo "Mendeploy kontrak..."
