@@ -201,7 +201,9 @@ EOL
 }
 
 view_logs() {
-docker logs -f infernet-node
+    docker logs -f infernet-node
+    echo -e "\nTekan tombol apa saja untuk kembali ke menu utama..."
+    read -n 1 -s  
 }
 
 remove_ritual_node() {
@@ -212,8 +214,10 @@ remove_ritual_node() {
     systemctl daemon-reload
     docker stop infernet-node root_infernet-fluentbit_1 infernet-redis infernet-anvil infernet-fluentbit
     docker rm infernet-node root_infernet-fluentbit_1 infernet-redis infernet-anvil infernet-fluentbit
-    rm -rf ~/infernet-container-starter ~/ritual-deployment.log
+    rm -rf ~/infernet-container-starter ~/ritual-deployment.log ~/ritual_screen.log
     echo "Node Ritual berhasil dihapus."
+    echo -e "\nTekan tombol apa saja untuk kembali ke menu utama..."
+    read -n 1 -s 
 }
 
 main_menu
