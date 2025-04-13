@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # Periksa apakah skrip dijalankan sebagai root
 if [ "$(id -u)" != "0" ]; then
@@ -6,17 +6,6 @@ if [ "$(id -u)" != "0" ]; then
     echo "Silakan coba gunakan perintah 'sudo -i' untuk beralih ke pengguna root, lalu jalankan kembali skrip ini."
     exit 1
 fi
-
-# Jalur penyimpanan skrip
-SCRIPT_PATH="$HOME/Ritual.sh"
-
-# Jalur file log
-LOG_FILE="/root/ritual_install.log"
-DOCKER_LOG_FILE="/root/infernet_node.log"
-
-# Inisialisasi file log
-echo "Log Skrip Ritual - $(date)" > "$LOG_FILE"
-echo "Log Kontainer Docker - $(date)" > "$DOCKER_LOG_FILE"
 
 # Fungsi untuk mencetak teks berwarna
 printf_colored() {
@@ -27,13 +16,12 @@ printf_colored() {
 
 # Fungsi untuk menampilkan teks berwarna di bagian atas skrip
 display_colored_text() {
-    printf_colored "42;30" "========================================================="
-    printf_colored "46;30" "========================================================="
-    printf_colored "45;97" "======================   T3RN   ========================="
-    printf_colored "43;30" "============== dibuat oleh JAWA-PRIDE  ================"
-    printf_colored "41;97" "=========== https://t.me/AirdropJP_JawaPride ==========="
-    printf_colored "44;30" "========================================================="
-    printf_colored "42;97" "========================================================="
+    printf_colored "40;96" "============================================================"
+    printf_colored "42;37" "=======================  J.W.P.A  =========================="
+    printf_colored "45;97" "================= @AirdropJP_JawaPride ====================="
+    printf_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID ================="
+    printf_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID =============="
+    printf_colored "44;30" "============================================================"
 }
 
 # Fungsi menu utama
@@ -41,134 +29,268 @@ function main_menu() {
     while true; do
         clear
         display_colored_text
-        echo "Skrip ini gratis dan open-source. Jangan percaya jika ada yang meminta bayaran." | tee -a "$LOG_FILE"
-        echo "================================================================" | tee -a "$LOG_FILE"
-        echo "Untuk keluar dari skrip, tekan Ctrl + C pada keyboard." | tee -a "$LOG_FILE"
-        echo "Silakan pilih operasi yang ingin dilakukan:" | tee -a "$LOG_FILE"
-        echo "1) Instalasi Node Ritual" | tee -a "$LOG_FILE"
-        echo "2) Lihat Log Node Ritual" | tee -a "$LOG_FILE"
-        echo "3) Hapus Node Ritual" | tee -a "$LOG_FILE"
-        echo "4) Keluar dari Skrip" | tee -a "$LOG_FILE"
+        echo "Skrip ini gratis dan open-source. Jangan percaya jika ada yang meminta bayaran."
+        echo "================================================================"
+        echo "Untuk keluar dari skrip, tekan Ctrl + C pada keyboard."
+        echo "Silakan pilih operasi yang ingin dilakukan:"
+        echo "1. Instal Node Ritual"
+        echo "2. Lihat log Node Ritual"
+        echo "3. Hapus Node Ritual"
+        echo "4. Keluar dari skrip"
 
         read -p "Masukkan pilihan Anda: " choice
-        echo "Pilihan pengguna: $choice" >> "$LOG_FILE"
 
         case $choice in
-            1)
+            1) 
                 install_ritual_node
                 ;;
+
             2)
                 view_logs
                 ;;
+
             3)
                 remove_ritual_node
                 ;;
+
             4)
-                echo "Keluar dari skrip!" | tee -a "$LOG_FILE"
+                echo "Keluar dari skrip!"
                 exit 0
                 ;;
+
             *)
-                echo "Pilihan tidak valid, silakan coba lagi." | tee -a "$LOG_FILE"
+                echo "Pilihan tidak valid, silakan pilih lagi."
                 ;;
+
         esac
 
-        echo "Tekan tombol apa saja untuk melanjutkan..." | tee -a "$LOG_FILE"
+        echo "Tekan tombol apa saja untuk melanjutkan..."
         read -n 1 -s
     done
 }
 
-# Fungsi instalasi node
-function install_ritual_node() {
-    echo "Memulai instalasi Node Ritual - $(date)" | tee -a "$LOG_FILE"
-    sudo apt update && sudo apt upgrade -y >> "$LOG_FILE" 2>&1
-    sudo apt -qy install curl git jq lz4 build-essential screen python3 python3-pip >> "$LOG_FILE" 2>&1
+# Fungsi untuk menginstal Node Ritual
+install_ritual_node() {
+    echo "Instalasi Ritual Network dimulai..."
 
-    pip3 install --upgrade pip >> "$LOG_FILE" 2>&1
-    pip3 install infernet-cli infernet-client >> "$LOG_FILE" 2>&1
+    sudo ufw allow ssh
+    sudo ufw enable
+    sudo ufw status
 
+    # Cek apakah Docker sudah terinstal
     if ! command -v docker &> /dev/null; then
-        echo "Docker belum terinstal, menginstal..." | tee -a "$LOG_FILE"
-        sudo apt install -y apt-transport-https ca-certificates curl software-properties-common >> "$LOG_FILE" 2>&1
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - >> "$LOG_FILE" 2>&1
-        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" >> "$LOG_FILE" 2>&1
-        sudo apt update && sudo apt install -y docker-ce docker-ce-cli containerd.io >> "$LOG_FILE" 2>&1
-        sudo systemctl enable docker && sudo systemctl start docker >> "$LOG_FILE" 2>&1
+      echo "Docker tidak terinstal. Menginstal Docker..."
+      sudo apt-get update
+      sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+        $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+      sudo apt-get update
+      sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+      sudo docker run hello-world
+    else
+      echo "Docker sudah terinstal."
     fi
 
-    if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
-        echo "Docker Compose belum terinstal, menginstal..." | tee -a "$LOG_FILE"
-        sudo curl -L "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-$(uname -s)-$(uname -m)" \
-            -o /usr/local/bin/docker-compose >> "$LOG_FILE" 2>&1
-        sudo chmod +x /usr/local/bin/docker-compose >> "$LOG_FILE" 2>&1
+    # Cek apakah Docker Compose sudah terinstal
+    if ! command -v docker-compose &> /dev/null; then
+      echo "Docker Compose tidak terinstal. Menginstal Docker Compose..."
+      sudo curl -L "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      sudo chmod +x /usr/local/bin/docker-compose
+      DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+      mkdir -p $DOCKER_CONFIG/cli-plugins
+      curl -SL https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+      chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+      docker compose version
+      sudo usermod -aG docker $USER
+      docker run hello-world
+    else
+      echo "Docker Compose sudah terinstal."
     fi
 
-    echo "Menginstal Foundry..." | tee -a "$LOG_FILE"
-    if pgrep anvil &>/dev/null; then
-        echo "Menutup proses anvil agar dapat memperbarui Foundry..." | tee -a "$LOG_FILE"
-        pkill anvil
-        sleep 2
-    fi
-    mkdir -p ~/foundry && cd ~/foundry
-    curl -L https://foundry.paradigm.xyz | bash >> "$LOG_FILE" 2>&1
-    $HOME/.foundry/bin/foundryup >> "$LOG_FILE" 2>&1
-    export PATH="$HOME/.foundry/bin:$PATH"
-    forge --version >> "$LOG_FILE" 2>&1 || { echo "Forge tidak ditemukan." | tee -a "$LOG_FILE"; exit 1; }
-
-    if [ -d "infernet-container-starter" ]; then
-        echo "Direktori sudah ada, menghapus..." | tee -a "$LOG_FILE"
-        rm -rf infernet-container-starter
+    # Memastikan git terinstal
+    if ! command -v git &> /dev/null; then
+      echo "Git tidak terinstal. Menginstal Git..."
+      sudo apt update
+      sudo apt install git -y
+    else
+      echo "Git sudah terinstal."
     fi
 
-    git clone https://github.com/ritual-net/infernet-container-starter >> "$LOG_FILE" 2>&1
+    # Memastikan jq terinstal
+    if ! command -v jq &> /dev/null; then
+      echo "jq tidak terinstal. Menginstal jq..."
+      sudo apt install jq -y
+    else
+      echo "jq sudah terinstal."
+    fi
+
+    # Memastikan lz4 terinstal
+    if ! command -v lz4 &> /dev/null; then
+      echo "lz4 tidak terinstal. Menginstal lz4..."
+      sudo apt install lz4 -y
+    else
+      echo "lz4 sudah terinstal."
+    fi
+
+    # Memastikan screen terinstal
+    if ! command -v screen &> /dev/null; then
+      echo "screen tidak terinstal. Menginstal screen..."
+      sudo apt install screen -y
+    else
+      echo "screen sudah terinstal."
+    fi
+
+    # Kloning repositori
+    echo "Mengkloning repositori..."
+    git clone https://github.com/ritual-net/infernet-container-starter
     cd infernet-container-starter
-    docker pull ritualnetwork/hello-world-infernet:latest >> "$LOG_FILE" 2>&1
 
-    echo "Memulai screen session dan membuat log..." | tee -a "$LOG_FILE"
-    screen -S ritual -L -Logfile /root/ritual_screen.log -dm bash -c 'project=hello-world make deploy-container; exec bash'
+    # Membuat file konfigurasi
+    echo "Membuat file konfigurasi..."
 
-    read -p "Masukkan Private Key Anda (0x...): " PRIVATE_KEY
-    echo "Private Key dimasukkan oleh pengguna." >> "$LOG_FILE"
-    sed -i "s|\"private_key\": \".*\"|\"private_key\": \"$PRIVATE_KEY\"|" deploy/config.json
+    # Meminta private key
+    echo "Masukkan Private Key Metamask"
+    read -s private_key
+    echo "Private key diterima (tersembunyi untuk keamanan)"
 
-    docker compose -f deploy/docker-compose.yaml down >> "$LOG_FILE" 2>&1
-    docker compose -f deploy/docker-compose.yaml up -d >> "$LOG_FILE" 2>&1
-    docker logs -f infernet-node >> "$DOCKER_LOG_FILE" 2>&1 &
+    # Menambahkan prefix 0x jika hilang
+    if [[ ! $private_key =~ ^0x ]]; then
+      private_key="0x$private_key"
+      echo "Menambahkan prefix 0x ke private key"
+    fi
 
-    echo "Instalasi dependensi proyek dengan forge..." | tee -a "$LOG_FILE"
-    cd projects/hello-world/contracts || exit 1
-    rm -rf lib/forge-std lib/infernet-sdk
-    forge install --no-commit foundry-rs/forge-std >> "$LOG_FILE" 2>&1
-    forge install --no-commit ritual-net/infernet-sdk >> "$LOG_FILE" 2>&1
+    # Membuat file config.json dengan private key
+    cat > ~/infernet-container-starter/deploy/config.json << EOL
+    {
+        "log_path": "infernet_node.log",
+        "server": {
+            "port": 4000,
+            "rate_limit": {
+                "num_requests": 100,
+                "period": 100
+            }
+        },
+        "chain": {
+            "enabled": true,
+            "trail_head_blocks": 3,
+            "rpc_url": "https://mainnet.base.org/",
+            "registry_address": "0x3B1554f346DFe5c482Bb4BA31b880c1C18412170",
+            "wallet": {
+              "max_gas_limit": 4000000,
+              "private_key": "${private_key}",
+              "allowed_sim_errors": []
+            },
+            "snapshot_sync": {
+              "sleep": 3,
+              "batch_size": 10000,
+              "starting_sub_id": 180000,
+              "sync_period": 30
+            }
+        },
+        "startup_wait": 1.0,
+        "redis": {
+            "host": "redis",
+            "port": 6379
+        },
+        "forward_stats": true,
+        "containers": [
+            {
+                "id": "hello-world",
+                "image": "ritualnetwork/hello-world-infernet:latest",
+                "external": true,
+                "port": "3000",
+                "allowed_delegate_addresses": [],
+                "allowed_addresses": [],
+                "allowed_ips": [],
+                "command": "--bind=0.0.0.0:3000 --workers=2",
+                "env": {},
+                "volumes": [],
+                "accepted_payments": {},
+                "generates_proofs": false
+            }
+        ]
+    }
+EOL
 
-    cd ~/infernet-container-starter || exit 1
-    docker compose -f deploy/docker-compose.yaml down >> "$LOG_FILE" 2>&1
-    docker compose -f deploy/docker-compose.yaml up -d >> "$LOG_FILE" 2>&1
+    # Menyalin konfigurasi ke folder kontainer
+    cp ~/infernet-container-starter/deploy/config.json ~/infernet-container-starter/projects/hello-world/container/config.json
 
-    echo "Mendeploy kontrak..." | tee -a "$LOG_FILE"
-    project=hello-world make deploy-contracts >> "$LOG_FILE" 2>&1
-    echo "Selesai instalasi." | tee -a "$LOG_FILE"
-}
+    # Deploy kontainer menggunakan systemd
+    echo "Membuat layanan systemd untuk Ritual Network..."
+    cd ~/infernet-container-starter
 
-function view_logs() {
-    echo "Menampilkan log dari Node Ritual (tail realtime):" | tee -a "$LOG_FILE"
-    tail -f "$DOCKER_LOG_FILE"
-}
+    # Membuat script untuk dijalankan oleh systemd
+    cat > ~/ritual-service.sh << EOL
+    #!/bin/bash
+    cd ~/infernet-container-starter
+    echo "Memulai deployment kontainer pada \$(date)" > ~/ritual-deployment.log
+    project=hello-world make deploy-container >> ~/ritual-deployment.log 2>&1
+    echo "Deployment kontainer selesai pada \$(date)" >> ~/ritual-deployment.log
 
-function remove_ritual_node() {
-    echo "Menghapus Node Ritual..." | tee -a "$LOG_FILE"
-    cd ~/infernet-container-starter || exit 1
-    docker compose down >> "$LOG_FILE" 2>&1
-    containers=("infernet-node" "infernet-fluentbit" "infernet-redis" "infernet-anvil" "hello-world")
-    for container in "${containers[@]}"; do
-        if docker ps -aq -f name=$container; then
-            docker stop $container >> "$LOG_FILE" 2>&1
-            docker rm $container >> "$LOG_FILE" 2>&1
-        fi
+    # Memastikan kontainer tetap berjalan
+    cd ~/infernet-container-starter
+    while true; do
+      echo "Memeriksa kontainer pada \$(date)" >> ~/ritual-deployment.log
+      if ! docker ps | grep -q "infernet"; then
+        echo "Kontainer berhenti. Menjalankan ulang pada \$(date)" >> ~/ritual-deployment.log
+        docker compose -f deploy/docker-compose.yaml up -d >> ~/ritual-deployment.log 2>&1
+      else
+        echo "Kontainer berjalan dengan baik pada \$(date)" >> ~/ritual-deployment.log
+      fi
+      sleep 300
     done
-    rm -rf ~/infernet-container-starter >> "$LOG_FILE" 2>&1
-    docker rmi -f ritualnetwork/hello-world-infernet:latest ritualnetwork/infernet-node:latest fluent/fluent-bit:3.1.4 redis:7.4.0 ritualnetwork/infernet-anvil:1.0.0 >> "$LOG_FILE" 2>&1
-    echo "Node berhasil dihapus." | tee -a "$LOG_FILE"
+EOL
+
+    chmod +x ~/ritual-service.sh
+
+    # Membuat file layanan systemd
+    sudo tee /etc/systemd/system/ritual-network.service > /dev/null << EOL
+    [Unit]
+    Description=Ritual Network Infernet Service
+    After=network.target docker.service
+    Requires=docker.service
+
+    [Service]
+    Type=simple
+    User=root
+    ExecStart=/bin/bash /root/ritual-service.sh
+    Restart=always
+    RestartSec=30
+    StandardOutput=append:/root/ritual-service.log
+    StandardError=append:/root/ritual-service.log
+
+    [Install]
+    WantedBy=multi-user.target
+EOL
+
+    # Memuat ulang dan memulai layanan
+    sudo systemctl daemon-reload
+    sudo systemctl enable ritual-network.service
+    sudo systemctl start ritual-network.service
+
+    echo "Instalasi selesai! Layanan Ritual Network telah dimulai."
 }
 
-# Jalankan menu utama
+# Menampilkan log
+view_logs() {
+    tail -f ~/ritual-deployment.log
+}
+
+# Menghapus node Ritual
+remove_ritual_node() {
+    echo "Menghapus node Ritual Network..."
+
+    sudo systemctl stop ritual-network.service
+    sudo systemctl disable ritual-network.service
+
+    # Menghapus konfigurasi dan kontainer
+    sudo rm -rf ~/infernet-container-starter
+    sudo rm -f /root/ritual-service.sh
+    sudo rm -f /etc/systemd/system/ritual-network.service
+
+    echo "Node Ritual Network telah dihapus."
+}
+
+# Menjalankan menu utama
 main_menu
