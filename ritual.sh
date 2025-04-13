@@ -54,7 +54,7 @@ main_menu() {
 install_ritual_node() {
     echo "Memulai instalasi Node Ritual..."
 
-    apt update && apt install -y ufw curl git jq lz4 screen
+    apt update && apt install -y ufw curl git jq lz4 screen build-essential
 
     ufw allow ssh
     ufw --force enable
@@ -65,11 +65,10 @@ install_ritual_node() {
         curl -fsSL https://get.docker.com | bash
     fi
 
-    # Install Docker Compose (versi terbaru)
+    # Install Docker Compose (modern)
     if ! docker compose version &> /dev/null; then
-        echo "Menginstal Docker Compose..."
-        curl -L "https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-        chmod +x /usr/local/bin/docker-compose
+        echo "Menginstal Docker Compose plugin..."
+        apt install -y docker-compose-plugin
     fi
 
     # Clone repo
@@ -80,6 +79,12 @@ install_ritual_node() {
     fi
     git clone https://github.com/ritual-net/infernet-container-starter
     cd infernet-container-starter
+
+    # Cek apakah Makefile ada
+    if [ ! -f "Makefile" ]; then
+        echo "File Makefile tidak ditemukan. Periksa apakah repo yang di-clone sudah lengkap."
+        exit 1
+    fi
 
     # Input private key
     read -s -p "Masukkan Private Key Metamask Anda: " private_key
