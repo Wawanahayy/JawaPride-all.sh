@@ -23,6 +23,21 @@ display_colored_text() {
     printf_colored "44;30" "============================================================"
 }
 
+# Fungsi untuk memeriksa dan memperbarui Docker Compose
+update_docker_compose() {
+    current_version=$(docker-compose --version | awk '{print $3}' | sed 's/,//')
+    latest_version="1.29.2"  # Ganti dengan versi terbaru yang Anda inginkan
+
+    if [ "$(printf '%s\n' "$latest_version" "$current_version" | sort -V | head -n1)" != "$latest_version" ]; then
+        echo "Memperbarui Docker Compose ke versi terbaru ($latest_version)..."
+        curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        chmod +x /usr/local/bin/docker-compose
+        echo "Docker Compose berhasil diperbarui ke versi $latest_version."
+    else
+        echo "Docker Compose sudah menggunakan versi terbaru."
+    fi
+}
+
 # Menu utama
 main_menu() {
     while true; do
@@ -65,10 +80,14 @@ install_ritual_node() {
         curl -fsSL https://get.docker.com | bash
     fi
 
-    # Install Docker Compose (modern)
-    if ! docker compose version &> /dev/null; then
-        echo "Menginstal Docker Compose plugin..."
-        apt install -y docker-compose-plugin
+    # Periksa dan perbarui Docker Compose
+    if ! docker-compose --version &> /dev/null; then
+        echo "Docker Compose belum terinstal. Menginstal Docker Compose..."
+        curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        chmod +x /usr/local/bin/docker-compose
+    else
+        echo "Docker Compose sudah terinstal. Memeriksa versi..."
+        update_docker_compose  # Perbarui Docker Compose jika perlu
     fi
 
     # Clone repo
@@ -170,7 +189,6 @@ EOL
     systemctl daemon-reload
     systemctl enable ritual-node
     systemctl start ritual-node
-
 
     # Menjalankan docker-compose setelah membuat service systemd
     echo "Menjalankan Docker Compose secara langsung..."
