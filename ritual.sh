@@ -65,10 +65,11 @@ install_ritual_node() {
         curl -fsSL https://get.docker.com | bash
     fi
 
-    # Install Docker Compose (modern)
+    # Install Docker Compose (versi terbaru)
     if ! docker compose version &> /dev/null; then
-        echo "Menginstal Docker Compose plugin..."
-        apt install -y docker-compose-plugin
+        echo "Menginstal Docker Compose..."
+        curl -L "https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        chmod +x /usr/local/bin/docker-compose
     fi
 
     # Clone repo
@@ -143,7 +144,6 @@ EOL
     echo "Membuat service systemd..."
 
     cat > /etc/systemd/system/ritual-node.service <<EOL
-[Unit]
 [Unit]
 Description=Ritual Infernet Node
 After=network.target
