@@ -194,14 +194,12 @@ EOL
     echo "Menjalankan Docker Compose secara langsung..."
     cd /root/infernet-container-starter
  docker-compose -f deploy/docker-compose.yaml up -d
- docker-compose down
- docker-compose up --build
     echo "Docker Compose dijalankan."
     echo "Node Ritual berhasil dipasang dan dijalankan via docker"
 }
 
 view_logs() {
-    docker logs -f infernet-node
+    docker logs -f --tail 100 infernet-node
     echo -e "\nTekan tombol apa saja untuk kembali ke menu utama..."
     read -n 1 -s  
 }
