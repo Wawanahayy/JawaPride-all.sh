@@ -199,7 +199,7 @@ EOL
 }
 
 view_logs() {
-    docker logs -f --tail 100 infernet-node
+    docker logs -f --tail 200 infernet-node
     echo -e "\nTekan tombol apa saja untuk kembali ke menu utama..."
     read -n 1 -s  
 }
