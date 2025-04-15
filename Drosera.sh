@@ -116,21 +116,38 @@ DROSERA_PRIVATE_KEY=$PRIVATE_KEY drosera apply
 echo "Trap telah berhasil dideploy!"
 echo "Langkah selanjutnya adalah memeriksa status dan bloom boost di dashboard Drosera."
 
-# Display info untuk memeriksa dan bloom boost di dashboard
-echo "1. Hubungkan wallet EVM Drosera Anda ke dashboard: https://app.drosera.io/"
-echo "2. Klik pada 'Traps Owned' untuk melihat Trap yang telah dideploy atau cari alamat Trap Anda."
-echo "3. Bloom Boost Trap Anda di Dashboard dengan menyetor Holesky ETH."
+# Menunggu 10 detik sebelum melanjutkan
+echo "Menunggu 10 detik sebelum melanjutkan..."
+sleep 10
 
-# Menjalankan perintah Fetch Blocks setelah Trap dideploy
-echo "4. Menjalankan perintah 'drosera dryrun' untuk memeriksa status blok."
-drosera dryrun
+# Menampilkan tampilan pengguna
+clear
+echo "Menyiapkan konfigurasi Drosera..."
 
-# Pertanyaan konfirmasi untuk memastikan semuanya selesai
-read -p "Apakah Anda sudah mengirim Trap dan melakukan Bloom Boost? (Y/N): " completed
+# Display info untuk memeriksa dan bloom boost di dashboard dengan warna merah
+print_colored "$RED" "1. Hubungkan wallet EVM Drosera Anda ke dashboard: https://app.drosera.io/"
+print_colored "$RED" "2. Klik pada 'Traps Owned' untuk melihat Trap yang telah dideploy atau cari alamat Trap Anda."
+print_colored "$RED" "3. Bloom Boost Trap Anda di Dashboard dengan menyetor Holesky ETH."
+print_colored "$RED" "4. Menjalankan perintah 'drosera dryrun' untuk memeriksa status blok."
+
+# Menunggu input dari pengguna sebelum melanjutkan
+read -p "Apakah Anda sudah menyelesaikan langkah-langkah di atas? (Y/N): " completed
+
 if [[ "$completed" == "Y" || "$completed" == "y" ]]; then
-    echo "Proses selesai dan Trap telah berhasil diblooming!"
+    # Menjalankan perintah Fetch Blocks setelah Trap dideploy
+    echo "Menjalankan perintah 'drosera dryrun' untuk memeriksa status blok."
+    drosera dryrun
+
+    # Pertanyaan konfirmasi untuk memastikan semuanya selesai
+    read -p "Apakah Anda sudah mengirim Trap dan melakukan Bloom Boost? (Y/N): " completed
+    if [[ "$completed" == "Y" || "$completed" == "y" ]]; then
+        echo "Proses selesai dan Trap telah berhasil diblooming!"
+    else
+        echo "Proses tidak selesai. Silakan ikuti instruksi dengan benar."
+        exit 1
+    fi
 else
-    echo "Proses tidak selesai. Silakan ikuti instruksi dengan benar."
+    echo "Proses belum selesai. Silakan ikuti instruksi dengan benar."
     exit 1
 fi
 
@@ -178,9 +195,6 @@ sudo systemctl daemon-reload
 sudo systemctl enable drosera
 sudo systemctl start drosera
 
-echo -e "${GRN}Selamat, proses instalasi telah berhasil!${NC}"
+echo -e "${GRN}Drosera Node berhasil dijalankan!${NC}"
 
-display_colored_text
-sleep 2
-# Logs
 journalctl -u drosera.service -f
