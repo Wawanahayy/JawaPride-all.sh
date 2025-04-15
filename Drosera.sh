@@ -178,5 +178,9 @@ sudo systemctl daemon-reload
 sudo systemctl enable drosera
 sudo systemctl start drosera
 
+echo -e "${GRN}Selamat, proses instalasi telah berhasil!${NC}"
+
+display_colored_text
+sleep 2
 # Logs
 journalctl -u drosera.service -f
