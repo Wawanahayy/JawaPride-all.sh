@@ -14,6 +14,26 @@ read GITHUB_EMAIL
 echo "Masukkan Username GitHub Anda:"
 read GITHUB_USERNAME
 
+if [ -z "$PRIVATE_KEY" ]; then
+    echo "Private Key tidak boleh kosong!"
+    exit 1
+fi
+
+if [ -z "$VPS_IP" ]; then
+    echo "IP VPS tidak boleh kosong!"
+    exit 1
+fi
+
+if [ -z "$GITHUB_EMAIL" ]; then
+    echo "Email GitHub tidak boleh kosong!"
+    exit 1
+fi
+
+if [ -z "$GITHUB_USERNAME" ]; then
+    echo "Username GitHub tidak boleh kosong!"
+    exit 1
+fi
+
 sudo apt-get install python3 python3-pip -y > /dev/null 2>&1
 pip3 install eth-account > /dev/null 2>&1
 
