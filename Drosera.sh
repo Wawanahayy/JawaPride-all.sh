@@ -35,6 +35,7 @@ read OPERATOR_ADDRESS
 
 # If operator address is not provided, extract from private key
 if [ -z "$OPERATOR_ADDRESS" ]; then
+    # Convert private key to address only if operator address is not provided
     OPERATOR_ADDRESS=$(python3 -c "
 from eth_account import Account
 acct = Account.from_key('$PRIVATE_KEY')
@@ -49,7 +50,20 @@ if [[ ! "$PRIVATE_KEY" =~ ^0x[0-9a-fA-F]{64}$ ]]; then
     exit 1
 fi
 
-# Proceed with the installation only after inputs are received
+# Confirm before proceeding with installation
+echo "Input berhasil diterima!"
+echo "Private Key: $PRIVATE_KEY"
+echo "GitHub Email: $GITHUB_EMAIL"
+echo "Node Operator Address: $OPERATOR_ADDRESS"
+echo "Apakah Anda ingin melanjutkan dengan instalasi? (y/n)"
+read CONFIRMATION
+
+if [[ "$CONFIRMATION" != "y" ]]; then
+    echo "Instalasi dibatalkan!"
+    exit 0
+fi
+
+# Proceed with the installation only after inputs are confirmed
 echo "Input berhasil diterima, melanjutkan dengan instalasi..."
 
 # Install necessary packages
