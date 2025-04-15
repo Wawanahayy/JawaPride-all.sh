@@ -1,7 +1,28 @@
 #!/bin/bash
 
-curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh | bash
+print_colored() {
+    local color_code=$1
+    local text=$2
+    echo -e "\033[${color_code}m${text}\033[0m"
+}
+
+display_colored_text() {
+    print_colored "40;96" "============================================================"  
+    print_colored "42;37" "=======================  J.W.P.A  ==========================" 
+    print_colored "45;97" "================= @AirdropJP_JawaPride =====================" 
+    print_colored "43;30" "=============== https://x.com/JAWAPRIDE_ID =================" 
+    print_colored "41;97" "============= https://linktr.ee/Jawa_Pride_ID ==============" 
+    print_colored "44;30" "============================================================" 
+}
+
+display_colored_text
 sleep 3
+
+log() {
+    local level=$1
+    local message=$2
+    echo "[$level] $message"
+}
 
 echo "Masukkan PRIVATE KEY Anda:"
 read PRIVATE_KEY
@@ -35,20 +56,36 @@ if [ -z "$GITHUB_USERNAME" ]; then
     exit 1
 fi
 
-sleep 5
-sudo apt-get install python3 python3-pip -y > /dev/null 2>&1
-pip3 install eth-account > /dev/null 2>&1
+echo "Apakah Anda ingin menggunakan alamat node operator dari PRIVATE KEY Anda? (y/n)"
+read USE_DEFAULT_OPERATOR
 
-OPERATOR_ADDRESS=$(python3 -c "
+if [ "$USE_DEFAULT_OPERATOR" == "y" ]; then
+    OPERATOR_ADDRESS=$(python3 -c "
 from eth_account import Account
 acct = Account.from_key('$PRIVATE_KEY')
 print(acct.address)
 ")
+    echo "OPERATOR_ADDRESS dari PRIVATE KEY: $OPERATOR_ADDRESS"
+else
+    echo "Masukkan alamat node operator Anda secara manual:"
+    read OPERATOR_ADDRESS
+    if [ -z "$OPERATOR_ADDRESS" ]; then
+        echo "Alamat node operator tidak boleh kosong!"
+        exit 1
+    fi
+fi
+
+sleep 3
+
+sudo apt-get install python3 python3-pip -y > /dev/null 2>&1
+pip3 install eth-account > /dev/null 2>&1
 
 echo "OPERATOR_ADDRESS: $OPERATOR_ADDRESS"
+sleep 3
 
 sudo apt-get update && sudo apt-get upgrade -y
 sudo apt install curl ufw iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip -y
+sleep 3
 
 for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do sudo apt-get remove $pkg; done
 sudo apt-get install ca-certificates curl gnupg -y
@@ -124,6 +161,6 @@ sudo systemctl daemon-reload
 sudo systemctl enable drosera
 sudo systemctl start drosera
 
-curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh | bash
+display_colored_text
 
 journalctl -u drosera.service -f
