@@ -24,55 +24,40 @@ log() {
     echo "[$level] $message"
 }
 
-echo "Masukkan PRIVATE KEY Anda:"
-read PRIVATE_KEY
+# Function to read input with a prompt
+read_input() {
+    local prompt=$1
+    local var_name=$2
+    while true; do
+        echo "$prompt"
+        read $var_name
+        if [ -z "${!var_name}" ]; then
+            echo "Input tidak boleh kosong! Silakan coba lagi."
+        else
+            break
+        fi
+    done
+}
 
-echo "Masukkan IP VPS Anda:"
-read VPS_IP
+# Input handling with validation
+read_input "Masukkan PRIVATE KEY Anda:" PRIVATE_KEY
+read_input "Masukkan IP VPS Anda:" VPS_IP
+read_input "Masukkan Email GitHub Anda:" GITHUB_EMAIL
+read_input "Masukkan Username GitHub Anda:" GITHUB_USERNAME
 
-echo "Masukkan Email GitHub Anda:"
-read GITHUB_EMAIL
+# Menambahkan logika operator node, jika kosong, gunakan default dari PRIVATE KEY
+echo "Masukkan alamat node operator Anda (tekan ENTER untuk menggunakan alamat dari PRIVATE KEY):"
+read OPERATOR_ADDRESS
 
-echo "Masukkan Username GitHub Anda:"
-read GITHUB_USERNAME
-
-if [ -z "$PRIVATE_KEY" ]; then
-    echo "Private Key tidak boleh kosong!"
-    exit 1
-fi
-
-if [ -z "$VPS_IP" ]; then
-    echo "IP VPS tidak boleh kosong!"
-    exit 1
-fi
-
-if [ -z "$GITHUB_EMAIL" ]; then
-    echo "Email GitHub tidak boleh kosong!"
-    exit 1
-fi
-
-if [ -z "$GITHUB_USERNAME" ]; then
-    echo "Username GitHub tidak boleh kosong!"
-    exit 1
-fi
-
-echo "Apakah Anda ingin menggunakan alamat node operator dari PRIVATE KEY Anda? (y/n)"
-read USE_DEFAULT_OPERATOR
-
-if [ "$USE_DEFAULT_OPERATOR" == "y" ]; then
+if [ -z "$OPERATOR_ADDRESS" ]; then
     OPERATOR_ADDRESS=$(python3 -c "
 from eth_account import Account
 acct = Account.from_key('$PRIVATE_KEY')
 print(acct.address)
 ")
-    echo "OPERATOR_ADDRESS dari PRIVATE KEY: $OPERATOR_ADDRESS"
+    echo "Menggunakan alamat operator dari PRIVATE KEY: $OPERATOR_ADDRESS"
 else
-    echo "Masukkan alamat node operator Anda secara manual:"
-    read OPERATOR_ADDRESS
-    if [ -z "$OPERATOR_ADDRESS" ]; then
-        echo "Alamat node operator tidak boleh kosong!"
-        exit 1
-    fi
+    echo "Menggunakan alamat operator manual: $OPERATOR_ADDRESS"
 fi
 
 sleep 3
