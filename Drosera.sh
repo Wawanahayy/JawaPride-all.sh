@@ -122,16 +122,15 @@ sleep 10
 
 # Menampilkan tampilan pengguna
 clear
+display_colored_text
 echo "Menyiapkan konfigurasi Drosera..."
-
-# Display info untuk memeriksa dan bloom boost di dashboard dengan warna merah
 print_colored "$RED" "1. Hubungkan wallet EVM Drosera Anda ke dashboard: https://app.drosera.io/"
 print_colored "$RED" "2. Klik pada 'Traps Owned' untuk melihat Trap yang telah dideploy atau cari alamat Trap Anda."
 print_colored "$RED" "3. Bloom Boost Trap Anda di Dashboard dengan menyetor Holesky ETH."
 print_colored "$RED" "4. Menjalankan perintah 'drosera dryrun' untuk memeriksa status blok."
 
 # Menunggu input dari pengguna sebelum melanjutkan
-read -p "Apakah Anda sudah menyelesaikan langkah-langkah di atas? (Y/N): " completed
+read -p "BACA PESAN DI ATAS UNTUK CONFIGURASI BOOST TRAP, TEKAN Y TERLEBIH DAHULU KARNA INI HANYA PERNINGANTAN? (Y/N): " completed
 
 if [[ "$completed" == "Y" || "$completed" == "y" ]]; then
     # Menjalankan perintah Fetch Blocks setelah Trap dideploy
