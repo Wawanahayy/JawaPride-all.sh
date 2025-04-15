@@ -7,7 +7,7 @@ YLW='\033[43;30m'
 BLU='\033[44;30m'
 PRP='\033[45;97m'
 CYN='\033[40;96m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 print_colored() {
     local color_code=$1
@@ -24,11 +24,10 @@ display_colored_text() {
     print_colored "$BLU" "============================================================"
 }
 
-# Display header
 display_colored_text
 sleep 3
 
-# Interactive inputs
+# --- INPUT SECTION ---
 echo "Masukkan PRIVATE KEY Anda:"
 read PRIVATE_KEY
 
@@ -38,29 +37,29 @@ read GITHUB_EMAIL
 echo "Masukkan Username GitHub Anda:"
 read GITHUB_USERNAME
 
-echo "Masukkan alamat node operator Anda / YOU ADDRESS:"
+echo "Masukkan alamat node operator Anda:"
 read OPERATOR_ADDRESS
 
-# Validate inputs
+# --- VALIDATION SECTION ---
 [[ -z "$PRIVATE_KEY" ]] && echo "Private Key tidak boleh kosong!" && exit 1
 [[ -z "$GITHUB_EMAIL" ]] && echo "Email GitHub tidak boleh kosong!" && exit 1
 [[ -z "$GITHUB_USERNAME" ]] && echo "Username GitHub tidak boleh kosong!" && exit 1
 [[ -z "$OPERATOR_ADDRESS" ]] && echo "Alamat node operator tidak boleh kosong!" && exit 1
 
-# Validate key format
-if [[ ! "$PRIVATE_KEY" =~ ^0x[0-9a-fA-F]{64}$ ]]; then
-    echo "Private key tidak valid! Harap masukkan private key yang benar dalam format hexadecimal (0x + 64 karakter hex)."
+# Validate format (accepts with/without 0x)
+if [[ ! "$PRIVATE_KEY" =~ ^(0x)?[0-9a-fA-F]{64}$ ]]; then
+    echo "Private key tidak valid! Harus 64 karakter hex, boleh dengan atau tanpa '0x'."
     exit 1
 fi
 
-# Get VPS IP
-VPS_IP=$(curl -s ifconfig.me)
-if [[ -z "$VPS_IP" ]]; then
-    echo "Gagal mendapatkan IP VPS!"
-    exit 1
-fi
+# Normalize to 0x-prefixed format
+[[ "$PRIVATE_KEY" != 0x* ]] && PRIVATE_KEY="0x$PRIVATE_KEY"
 
-# Confirmation
+# Get IPv4 VPS IP
+VPS_IP=$(curl -4 -s ifconfig.me)
+[[ -z "$VPS_IP" ]] && echo "Gagal mendapatkan IP VPS!" && exit 1
+
+# --- CONFIRMATION ---
 echo "Input berhasil diterima!"
 echo "Private Key: ****${PRIVATE_KEY: -4}"
 echo "GitHub Email: $GITHUB_EMAIL"
@@ -71,17 +70,27 @@ echo "Apakah Anda ingin melanjutkan dengan instalasi? (y/n)"
 read CONFIRMATION
 [[ "$CONFIRMATION" != "y" ]] && echo "Instalasi dibatalkan!" && exit 0
 
-echo "Memulai instalasi environment..."
+# --- MANUAL STEP FOR ETH HOLESKY DEPOSIT ---
+echo "Sebelum melanjutkan, silakan buka Dashboard Drosera di https://app.drosera.io/."
+echo "Klik Trap yang Anda miliki, kemudian klik 'Send Bloom Boost' dan depositkan beberapa Holesky ETH pada Trap Anda."
+echo "Setelah deposit selesai, tekan 'y' untuk melanjutkan."
+read DEPOSIT_CONFIRMATION
+[[ "$DEPOSIT_CONFIRMATION" != "y" ]] && echo "Instalasi dibatalkan!" && exit 0
 
-# Install Python & eth-account
+# --- FETCH BLOCKS (Dryrun) ---
+drosera dryrun
+if [[ $? -ne 0 ]]; then
+    echo "Proses dryrun gagal. Pastikan semua konfigurasi sudah benar."
+    exit 1
+fi
+
+# --- ENVIRONMENT SETUP ---
 sudo apt-get install python3 python3-pip -y || exit 1
 pip3 install eth-account || exit 1
 
-# Install dependencies
 sudo apt-get update && sudo apt-get upgrade -y
 sudo apt install curl ufw iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip -y
 
-# Docker setup
 for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do sudo apt-get remove $pkg -y; done
 sudo apt-get install ca-certificates curl gnupg -y
 sudo install -m 0755 -d /etc/apt/keyrings
@@ -91,7 +100,7 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.
 sudo apt update && sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 sudo docker run hello-world || echo "⚠️ Docker test container gagal dijalankan."
 
-# Drosera & Foundry
+# --- INSTALL DROPS ---
 curl -L https://app.drosera.io/install | bash
 source ~/.bashrc && droseraup
 curl -L https://foundry.paradigm.xyz | bash
@@ -99,7 +108,6 @@ source ~/.bashrc && foundryup
 curl -fsSL https://bun.sh/install | bash
 source ~/.bashrc
 
-# Setup trap
 mkdir -p ~/my-drosera-trap && cd ~/my-drosera-trap
 git config --global user.email "$GITHUB_EMAIL"
 git config --global user.name "$GITHUB_USERNAME"
@@ -107,22 +115,19 @@ forge init -t drosera-network/trap-foundry-template
 bun install
 forge build
 
-# Apply Drosera config
 DROSERA_PRIVATE_KEY=$PRIVATE_KEY drosera apply <<< "ofc"
 echo -e '\nprivate_trap = true\nwhitelist = ["'"$OPERATOR_ADDRESS"'"]' >> ~/my-drosera-trap/drosera.toml
 DROSERA_PRIVATE_KEY=$PRIVATE_KEY drosera apply
 
-# Download operator
 cd ~
 curl -LO https://github.com/drosera-network/releases/releases/download/v1.16.2/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz
 tar -xvf drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz
 sudo cp drosera-operator /usr/bin
 drosera-operator --version
 
-# Register node
 drosera-operator register --eth-rpc-url https://ethereum-holesky-rpc.publicnode.com --eth-private-key $PRIVATE_KEY
 
-# Create service
+# --- SYSTEMD SERVICE ---
 sudo tee /etc/systemd/system/drosera.service > /dev/null <<EOF
 [Unit]
 Description=Drosera Node Service
@@ -146,7 +151,7 @@ ExecStart=$(which drosera-operator) node --db-file-path $HOME/.drosera.db --netw
 WantedBy=multi-user.target
 EOF
 
-# Firewall + start service
+# --- FIREWALL + START ---
 sudo ufw allow ssh
 sudo ufw allow 31313/tcp
 sudo ufw allow 31314/tcp
@@ -156,5 +161,4 @@ sudo systemctl daemon-reload
 sudo systemctl enable drosera
 sudo systemctl start drosera
 
-# Logs
 journalctl -u drosera.service -f
