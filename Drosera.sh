@@ -4,31 +4,27 @@ curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads
 
 echo "Masukkan PRIVATE KEY Anda:"
 read PRIVATE_KEY
-
-echo "Masukkan IP VPS Anda:"
-read VPS_IP
-
-echo "Masukkan Email GitHub Anda:"
-read GITHUB_EMAIL
-
-echo "Masukkan Username GitHub Anda:"
-read GITHUB_USERNAME
-
 if [ -z "$PRIVATE_KEY" ]; then
     echo "Private Key tidak boleh kosong!"
     exit 1
 fi
 
+echo "Masukkan IP VPS Anda:"
+read VPS_IP
 if [ -z "$VPS_IP" ]; then
     echo "IP VPS tidak boleh kosong!"
     exit 1
 fi
 
+echo "Masukkan Email GitHub Anda:"
+read GITHUB_EMAIL
 if [ -z "$GITHUB_EMAIL" ]; then
     echo "Email GitHub tidak boleh kosong!"
     exit 1
 fi
 
+echo "Masukkan Username GitHub Anda:"
+read GITHUB_USERNAME
 if [ -z "$GITHUB_USERNAME" ]; then
     echo "Username GitHub tidak boleh kosong!"
     exit 1
