@@ -1,6 +1,7 @@
 #!/bin/bash
 
 curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh | bash
+sleep 3
 
 echo "Masukkan PRIVATE KEY Anda:"
 read PRIVATE_KEY
