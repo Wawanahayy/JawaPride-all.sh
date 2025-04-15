@@ -33,6 +33,22 @@ read GITHUB_EMAIL
 echo "Masukkan alamat node operator Anda:"
 read OPERATOR_ADDRESS
 
+# Ensure we have input values before proceeding
+if [ -z "$PRIVATE_KEY" ]; then
+    echo "Private Key tidak boleh kosong!"
+    exit 1
+fi
+
+if [ -z "$GITHUB_EMAIL" ]; then
+    echo "Email GitHub tidak boleh kosong!"
+    exit 1
+fi
+
+if [ -z "$OPERATOR_ADDRESS" ]; then
+    echo "Alamat node operator tidak boleh kosong!"
+    exit 1
+fi
+
 # Verify the private key format (ensure it's hexadecimal)
 if [[ ! "$PRIVATE_KEY" =~ ^0x[0-9a-fA-F]{64}$ ]]; then
     echo "Private key tidak valid! Harap masukkan private key yang benar dalam format hexadecimal (0x diikuti oleh 64 karakter hex)."
