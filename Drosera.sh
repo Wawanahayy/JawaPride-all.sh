@@ -30,19 +30,8 @@ read PRIVATE_KEY
 echo "Masukkan Email GitHub Anda:"
 read GITHUB_EMAIL
 
-echo "Masukkan alamat node operator Anda (tekan ENTER untuk menggunakan alamat dari PRIVATE KEY):"
+echo "Masukkan alamat node operator Anda:"
 read OPERATOR_ADDRESS
-
-# If operator address is not provided, extract from private key
-if [ -z "$OPERATOR_ADDRESS" ]; then
-    # Convert private key to address only if operator address is not provided
-    OPERATOR_ADDRESS=$(python3 -c "
-from eth_account import Account
-acct = Account.from_key('$PRIVATE_KEY')
-print(acct.address)
-")
-    echo "Menggunakan alamat operator dari PRIVATE KEY: $OPERATOR_ADDRESS"
-fi
 
 # Verify the private key format (ensure it's hexadecimal)
 if [[ ! "$PRIVATE_KEY" =~ ^0x[0-9a-fA-F]{64}$ ]]; then
