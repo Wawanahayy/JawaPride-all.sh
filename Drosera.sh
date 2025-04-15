@@ -124,10 +124,11 @@ sleep 10
 clear
 display_colored_text
 echo "Menyiapkan konfigurasi Drosera..."
-print_colored "$RED" "1. Hubungkan wallet EVM Drosera Anda ke dashboard: https://app.drosera.io/"
-print_colored "$RED" "2. Klik pada 'Traps Owned' untuk melihat Trap yang telah dideploy atau cari alamat Trap Anda."
+print_colored "$RED" "1. Hubungkan wallet EVM Drosera Anda ke dashboard: https://app.drosera.io/ paste address"
+print_colored "$RED" "2. Klik pada 'Traps Owned' 'pilih yang private/lock/keduanya' untuk melihat Trap yang telah dideploy atau cari alamat Trap Anda."
 print_colored "$RED" "3. Bloom Boost Trap Anda di Dashboard dengan menyetor Holesky ETH."
-print_colored "$RED" "4. Menjalankan perintah 'drosera dryrun' untuk memeriksa status blok."
+print_colored "$RED" "4. SETELAH KE LOGS AKHIR SILAHKAN PERGI KE WEB LAGI UNTUK OPT-IN."
+print_colored "$RED" "5. OPT-IN BERGUNA UNTUK BLOCK/SYNC."
 
 # Menunggu input dari pengguna sebelum melanjutkan
 read -p "BACA PESAN DI ATAS UNTUK CONFIGURASI BOOST TRAP, TEKAN Y TERLEBIH DAHULU KARNA INI HANYA PERNINGANTAN? (Y/N): " completed
