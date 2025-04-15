@@ -1,11 +1,13 @@
 #!/bin/bash
 
+# Function to print colored text
 print_colored() {
     local color_code=$1
     local text=$2
     echo -e "\033[${color_code}m${text}\033[0m"
 }
 
+# Function to display colored text
 display_colored_text() {
     print_colored "40;96" "============================================================"  
     print_colored "42;37" "=======================  J.W.P.A  ==========================" 
@@ -15,40 +17,23 @@ display_colored_text() {
     print_colored "44;30" "============================================================" 
 }
 
+# Display the initial colored text
 display_colored_text
+
+# Wait for 3 seconds before continuing
 sleep 3
 
-log() {
-    local level=$1
-    local message=$2
-    echo "[$level] $message"
-}
+# Read user input for required fields
+echo "Masukkan PRIVATE KEY Anda:"
+read PRIVATE_KEY
 
-# Function to read input with a prompt
-read_input() {
-    local prompt=$1
-    local var_name=$2
-    while true; do
-        echo "$prompt"
-        read $var_name
-        if [ -z "${!var_name}" ]; then
-            echo "Input tidak boleh kosong! Silakan coba lagi."
-        else
-            break
-        fi
-    done
-}
+echo "Masukkan Email GitHub Anda:"
+read GITHUB_EMAIL
 
-# Input handling with validation
-read_input "Masukkan PRIVATE KEY Anda:" PRIVATE_KEY
-read_input "Masukkan IP VPS Anda:" VPS_IP
-read_input "Masukkan Email GitHub Anda:" GITHUB_EMAIL
-read_input "Masukkan Username GitHub Anda:" GITHUB_USERNAME
-
-# Menambahkan logika operator node, jika kosong, gunakan default dari PRIVATE KEY
 echo "Masukkan alamat node operator Anda (tekan ENTER untuk menggunakan alamat dari PRIVATE KEY):"
 read OPERATOR_ADDRESS
 
+# If operator address is not provided, extract from private key
 if [ -z "$OPERATOR_ADDRESS" ]; then
     OPERATOR_ADDRESS=$(python3 -c "
 from eth_account import Account
@@ -56,22 +41,26 @@ acct = Account.from_key('$PRIVATE_KEY')
 print(acct.address)
 ")
     echo "Menggunakan alamat operator dari PRIVATE KEY: $OPERATOR_ADDRESS"
-else
-    echo "Menggunakan alamat operator manual: $OPERATOR_ADDRESS"
 fi
 
-sleep 3
+# Verify the private key format (ensure it's hexadecimal)
+if [[ ! "$PRIVATE_KEY" =~ ^0x[0-9a-fA-F]{64}$ ]]; then
+    echo "Private key tidak valid! Harap masukkan private key yang benar dalam format hexadecimal (0x diikuti oleh 64 karakter hex)."
+    exit 1
+fi
 
+# Proceed with the installation only after inputs are received
+echo "Input berhasil diterima, melanjutkan dengan instalasi..."
+
+# Install necessary packages
 sudo apt-get install python3 python3-pip -y > /dev/null 2>&1
 pip3 install eth-account > /dev/null 2>&1
 
-echo "OPERATOR_ADDRESS: $OPERATOR_ADDRESS"
-sleep 3
-
+# Install updates and other required packages
 sudo apt-get update && sudo apt-get upgrade -y
 sudo apt install curl ufw iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip -y
-sleep 3
 
+# Install Docker
 for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do sudo apt-get remove $pkg; done
 sudo apt-get install ca-certificates curl gnupg -y
 sudo install -m 0755 -d /etc/apt/keyrings
@@ -83,15 +72,19 @@ sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt update && sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 sudo docker run hello-world
 
+# Install Drosera
 curl -L https://app.drosera.io/install | bash
 source /root/.bashrc && droseraup
 
+# Install Foundry
 curl -L https://foundry.paradigm.xyz | bash
 source /root/.bashrc && foundryup
 
+# Install Bun
 curl -fsSL https://bun.sh/install | bash
 source /root/.bashrc
 
+# Setup Drosera trap directory
 mkdir -p ~/my-drosera-trap && cd ~/my-drosera-trap
 git config --global user.email "$GITHUB_EMAIL"
 git config --global user.name "$GITHUB_USERNAME"
@@ -99,20 +92,25 @@ forge init -t drosera-network/trap-foundry-template
 bun install
 forge build
 
+# Apply Drosera with private key
 DROSERA_PRIVATE_KEY=$PRIVATE_KEY drosera apply <<< "ofc"
 
+# Add private key and operator address to drosera.toml
 echo -e '\nprivate_trap = true\nwhitelist = ["'"$OPERATOR_ADDRESS"'"]' >> ~/my-drosera-trap/drosera.toml
 cd ~/my-drosera-trap
 DROSERA_PRIVATE_KEY=$PRIVATE_KEY drosera apply
 
+# Download Drosera operator and install
 cd ~
 curl -LO https://github.com/drosera-network/releases/releases/download/v1.16.2/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz
 tar -xvf drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz
 sudo cp drosera-operator /usr/bin
 drosera-operator --version
 
+# Register Drosera node
 drosera-operator register --eth-rpc-url https://ethereum-holesky-rpc.publicnode.com --eth-private-key $PRIVATE_KEY
 
+# Create systemd service for Drosera
 sudo tee /etc/systemd/system/drosera.service > /dev/null <<EOF
 [Unit]
 Description=Drosera Node Service
@@ -136,6 +134,7 @@ ExecStart=$(which drosera-operator) node --db-file-path $HOME/.drosera.db --netw
 WantedBy=multi-user.target
 EOF
 
+# Setup firewall and start Drosera service
 sudo ufw allow ssh
 sudo ufw allow 22
 sudo ufw allow 31313/tcp
@@ -146,6 +145,5 @@ sudo systemctl daemon-reload
 sudo systemctl enable drosera
 sudo systemctl start drosera
 
-display_colored_text
-
+# Display Drosera logs
 journalctl -u drosera.service -f
