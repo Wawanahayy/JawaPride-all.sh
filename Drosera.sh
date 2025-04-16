@@ -73,8 +73,6 @@ read CONFIRMATION
 
 echo "Memulai instalasi environment..."
 
-# Install Python & eth-account
-sudo apt-get install python3 python3-pip -y || exit 1
 
 # Install dependencies
 sudo apt-get update && sudo apt-get upgrade -y
