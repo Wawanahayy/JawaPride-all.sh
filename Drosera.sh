@@ -107,7 +107,7 @@ forge build
 # Apply Drosera config
 DROSERA_PRIVATE_KEY=$PRIVATE_KEY drosera apply <<< "ofc"
 echo -e '\nprivate_trap = true\nwhitelist = ["'"$OPERATOR_ADDRESS"'"]' >> ~/my-drosera-trap/drosera.toml
-DROSERA_PRIVATE_KEY=$PRIVATE_KEY drosera apply
+
 
 # Setelah Trap dideploy - Instruksi setelah apply
 echo "Trap telah berhasil dideploy!"
