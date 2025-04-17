@@ -151,6 +151,8 @@ else
     exit 1
 fi
 
+DROSERA_PRIVATE_KEY=$PRIVATE_KEY drosera apply
+
 # Download operator
 cd ~
 curl -LO https://github.com/drosera-network/releases/releases/download/v1.16.2/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz
