@@ -92,6 +92,7 @@ sudo apt update && sudo apt install docker-ce docker-ce-cli containerd.io docker
 sudo docker run hello-world || echo "⚠️ Docker test container gagal dijalankan."
 
 # Drosera & Foundry
+sudo apt install snap
 curl -L https://app.drosera.io/install | bash
 source ~/.bashrc && droseraup
 curl -L https://foundry.paradigm.xyz | bash
