@@ -96,7 +96,8 @@ sudo apt install snap
 curl -L https://app.drosera.io/install | bash
 source ~/.bashrc && droseraup
 curl -L https://foundry.paradigm.xyz | bash
-source ~/.bashrc && foundryup
+source ~/.bashrc && ps aux | grep anvil | awk '{print $2}' | xargs kill -9
+&& foundryup
 curl -fsSL https://bun.sh/install | bash
 source ~/.bashrc
 
