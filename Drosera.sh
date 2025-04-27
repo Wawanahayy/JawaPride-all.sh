@@ -100,6 +100,10 @@ source ~/.bashrc && foundryup
 curl -fsSL https://bun.sh/install | bash
 source ~/.bashrc
 
+DROSERA_PRIVATE_KEY=$PRIVATE_KEY drosera apply --eth-rpc-url https://holesky.gateway.tenderly.co
+
+drosera dryrun
+
 # Setup trap
 mkdir -p ~/my-drosera-trap && cd ~/my-drosera-trap
 git config --global user.email "$GITHUB_EMAIL"
@@ -111,7 +115,6 @@ forge build
 # Apply Drosera config
 DROSERA_PRIVATE_KEY=$PRIVATE_KEY drosera apply <<< "ofc"
 echo -e '\nprivate_trap = true\nwhitelist = ["'"$OPERATOR_ADDRESS"'"]' >> ~/my-drosera-trap/drosera.toml
-
 
 # Setelah Trap dideploy - Instruksi setelah apply
 echo "Trap telah berhasil dideploy!"
@@ -152,7 +155,6 @@ else
     exit 1
 fi
 
-DROSERA_PRIVATE_KEY=$PRIVATE_KEY drosera apply
 
 # Download operator
 cd ~
