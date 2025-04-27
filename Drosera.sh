@@ -109,6 +109,7 @@ mkdir -p ~/my-drosera-trap && cd ~/my-drosera-trap
 git config --global user.email "$GITHUB_EMAIL"
 git config --global user.name "$GITHUB_USERNAME"
 forge init -t drosera-network/trap-foundry-template
+bun init
 bun install
 forge build
 
