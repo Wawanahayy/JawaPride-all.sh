@@ -72,12 +72,12 @@ ufw enable
 ufw allow 40400
 ufw allow 8080
 
-# Jalankan aztec node
-echo "[🚀] Menjalankan node Aztec..."
-aztec start --node --archiver --sequencer \
+echo "[🚀] Menjalankan node Aztec dalam sesi screen 'aztec-node'..."
+screen -S aztec-node -dm bash -c "aztec start --node --archiver --sequencer \
   --network alpha-testnet \
   --l1-rpc-urls $ETHEREUM_HOSTS \
   --l1-consensus-host-urls $L1_CONSENSUS_HOST_URLS \
   --sequencer.validatorPrivateKey $VALIDATOR_PRIVATE_KEY \
   --sequencer.coinbase $COINBASE \
-  --p2p.p2pIp $P2P_IP
+  --p2p.p2pIp $P2P_IP"
+echo "[✔] Node sedang berjalan dalam screen bernama 'aztec-node'. Gunakan 'screen -r aztec-node' untuk melihat log."
