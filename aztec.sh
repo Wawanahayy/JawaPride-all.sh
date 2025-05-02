@@ -60,17 +60,16 @@ echo "export PATH=\$PATH:/root/.aztec/bin" >> /root/.bash_profile
 
 # Terapkan perubahan ke PATH
 source /root/.bash_profile
+export PATH=$PATH:/sbin:/usr/sbin
 
 # Allow akses di port 8080 dan 8545
 echo "[*] Mengizinkan akses pada port 8080 dan 8545..."
-# Firewall
 ufw allow 22
 ufw allow ssh
+ufw allow 8080
+ufw allow 40400
 ufw enable
 
-# Sequencer
-ufw allow 40400
-ufw allow 8080
 
 echo "[🚀] Menjalankan node Aztec dalam sesi screen 'aztec-node'..."
 screen -S aztec-node -dm bash -c "aztec start --node --archiver --sequencer \
