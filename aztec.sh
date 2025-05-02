@@ -3,9 +3,13 @@
 # Display setup
 curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh | bash
 
+apt update && apt install -y bash
+
+sudo apt install curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip libleveldb-dev  -y
+
 bash -i <(curl -s https://install.aztec.network)
 
-aztec-up alpha-testnet
+aztec-up 0.85.0-alpha-testnet.5
 
 echo "====================================="
 echo "     🚀 Aztec Sequencer One-Click    "
@@ -59,8 +63,14 @@ source /root/.bash_profile
 
 # Allow akses di port 8080 dan 8545
 echo "[*] Mengizinkan akses pada port 8080 dan 8545..."
+# Firewall
+ufw allow 22
+ufw allow ssh
+ufw enable
+
+# Sequencer
+ufw allow 40400
 ufw allow 8080
-ufw allow 8545
 
 # Jalankan aztec node
 echo "[🚀] Menjalankan node Aztec..."
