@@ -17,7 +17,7 @@ DATA_DIR="$HOME_DIR/.stabled/data"
 SERVICE_NAME="stabled"
 USER_NAME="$(whoami)"
 
-
+# -------- Optional display step (external banner/script) --------
 loading_step() {
     echo "Downloading and running display script..."
     curl -s https://raw.githubusercontent.com/Wawanahayy/JawaPride-all.sh/refs/heads/main/display.sh | bash || echo "Display script failed (optional)."
@@ -32,7 +32,7 @@ echo " Chain ID: $CHAIN_ID"
 echo "=========================================="
 echo
 
-
+# -------- Input section --------
 read -rp "Node moniker (name, e.g. Jawa Pride): " MONIKER
 if [ -z "${MONIKER}" ]; then
   MONIKER="stable-node"
@@ -57,16 +57,19 @@ echo
 
 read -rp "Proceed with installation? (y/N): " CONFIRM
 CONFIRM=${CONFIRM:-N}
-if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
+# Pakai tes sederhana, bukan [[ =~ ]]
+if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
   echo "Aborted."
   exit 1
 fi
 
+# -------- 1. Update OS + install packages --------
 echo
 echo ">>> Step 1: Updating OS and installing packages..."
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y build-essential git wget curl jq lz4 zstd unzip htop net-tools ufw pv perl
 
+# -------- 2. Download + install binary --------
 echo
 echo ">>> Step 2: Downloading and installing stabled binary..."
 cd "$HOME_DIR"
@@ -84,12 +87,14 @@ echo
 echo "stabled version:"
 stabled version || echo "Warning: cannot show version (check binary name/path)."
 
+# -------- 3. Init node --------
 echo
 echo ">>> Step 3: Initializing node..."
 stabled init "$MONIKER" --chain-id "$CHAIN_ID"
 
 mkdir -p "$CONFIG_DIR"
 
+# -------- 4. Genesis --------
 echo
 echo ">>> Step 4: Downloading genesis..."
 if [ -f "$CONFIG_DIR/genesis.json" ]; then
@@ -106,6 +111,7 @@ echo
 echo "Genesis checksum:"
 sha256sum "$CONFIG_DIR/genesis.json"
 
+# -------- 5. config.toml --------
 echo
 echo ">>> Step 5: Applying recommended config (config.toml)..."
 cd "$HOME_DIR"
@@ -118,8 +124,8 @@ fi
 
 cp -f config.toml "$CONFIG_DIR/config.toml"
 
+# Escape moniker untuk TOML
 ESCAPED_MONIKER=$(printf '%s\n' "$MONIKER" | sed 's/[&/\\]/\\&/g')
-
 sed -i "s/^moniker = \".*\"/moniker = \"${ESCAPED_MONIKER}\"/" "$CONFIG_DIR/config.toml" || true
 
 echo "Updating P2P and RPC parameters in config.toml..."
@@ -130,7 +136,7 @@ sed -i 's/^pex *=.*/pex = true/' "$CONFIG_DIR/config.toml" || true
 sed -i 's|^laddr *= .*|laddr = "tcp://0.0.0.0:26657"|' "$CONFIG_DIR/config.toml" || true
 sed -i 's/^max_open_connections *=.*/max_open_connections = 900/' "$CONFIG_DIR/config.toml" || true
 
-
+# -------- app.toml (JSON-RPC) --------
 APP_TOML="$CONFIG_DIR/app.toml"
 if [ -f "$APP_TOML" ]; then
   echo
@@ -140,7 +146,6 @@ if [ -f "$APP_TOML" ]; then
       s/\[json-rpc\]\s*([^[]*)/\[json-rpc\]\nenable = true\naddress = "0.0.0.0:8545"\nws-address = "0.0.0.0:8546"\nallow-unprotected-txs = true\n\n/s
     ' "$APP_TOML" || true
   else
-    # Append at end as fallback
     cat <<EOF >> "$APP_TOML"
 
 [json-rpc]
@@ -154,13 +159,13 @@ else
   echo "Warning: app.toml not found at $APP_TOML, please edit it manually later."
 fi
 
-if [[ "$USE_SNAPSHOT" =~ ^[Yy]$ ]]; then
+# -------- 6. Snapshot (optional) --------
+if [ "$USE_SNAPSHOT" = "y" ] || [ "$USE_SNAPSHOT" = "Y" ]; then
   echo
   echo ">>> Step 6: Fast sync via snapshot..."
   mkdir -p "$HOME_DIR/snapshot"
   cd "$HOME_DIR/snapshot"
 
-  # Clean old data folder but keep directory
   mkdir -p "$DATA_DIR"
   rm -rf "$DATA_DIR"/*
 
@@ -172,13 +177,14 @@ else
   echo ">>> Step 6: Skipping snapshot, node will sync from scratch."
 fi
 
-if [[ "$USE_UFW" =~ ^[Yy]$ ]]; then
+# -------- 7. Firewall (UFW) --------
+if [ "$USE_UFW" = "y" ] || [ "$USE_UFW" = "Y" ]; then
   echo
   echo ">>> Step 7: Configuring UFW firewall..."
   sudo ufw allow 22/tcp
   sudo ufw allow 26656/tcp
 
-  if [[ "$OPEN_RPC" =~ ^[Yy]$ ]]; then
+  if [ "$OPEN_RPC" = "y" ] || [ "$OPEN_RPC" = "Y" ]; then
     sudo ufw allow 26657/tcp
     sudo ufw allow 8545/tcp
     sudo ufw allow 8546/tcp
@@ -197,7 +203,7 @@ else
   echo "  sudo ufw enable"
 fi
 
-
+# -------- 8. systemd service --------
 echo
 echo ">>> Step 8: Creating systemd service..."
 
@@ -228,7 +234,7 @@ echo
 echo ">>> Service status:"
 sudo systemctl status "${SERVICE_NAME}" --no-pager || true
 
-
+# -------- 9. Final info --------
 echo
 echo "=========================================="
 echo " Stable node setup finished."
@@ -239,7 +245,7 @@ echo " Service        : ${SERVICE_NAME}"
 echo "=========================================="
 echo
 echo "Useful commands:"
-echo "  sudo journalctl -u stabled -f          # follow logs"
+echo "  sudo journalctl -u stabled -f"
 echo "  curl -s localhost:26657/status | jq '.result.sync_info'"
 echo "  curl -s localhost:26657/net_info | jq '.result.n_peers'"
 echo
