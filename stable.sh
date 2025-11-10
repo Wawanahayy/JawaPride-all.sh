@@ -2,7 +2,7 @@
 set -euo pipefail
 
 #############################################
-# Stable Testnet one-click installer (clean)
+# Stable Testnet one-click installer (FULL CLEAN)
 #############################################
 
 CHAIN_ID="stabletestnet_2201-1"
@@ -43,12 +43,44 @@ detect_ip() {
 loading_step
 
 echo "=========================================="
-echo " Stable Testnet one-click setup (CLEAN)"
+echo " Stable Testnet one-click setup (FULL CLEAN)"
 echo " Chain ID: $CHAIN_ID"
 echo "=========================================="
 echo
 
-# -------- Clean previous install if exists --------
+#############################################
+# STEP 0: STOP & REMOVE PREVIOUS NODE
+#############################################
+echo ">>> Step 0: Stopping and removing previous node (if any)..."
+
+# Stop and disable old systemd service if exists
+if systemctl list-unit-files | grep -q "^${SERVICE_NAME}.service"; then
+  echo "Found existing systemd service: ${SERVICE_NAME}.service"
+  sudo systemctl stop "${SERVICE_NAME}" || true
+  sudo systemctl disable "${SERVICE_NAME}" || true
+  sudo rm -f "/etc/systemd/system/${SERVICE_NAME}.service"
+  sudo systemctl daemon-reload
+  echo "Old systemd service removed."
+else
+  echo "No previous systemd service found for ${SERVICE_NAME}."
+fi
+
+# Optionally remove old binary
+if command -v stabled >/dev/null 2>&1; then
+  echo "Existing stabled binary detected at: $(command -v stabled)"
+  read -rp "Remove existing stabled binary and replace with fresh one? (y/N): " RM_BIN
+  RM_BIN=${RM_BIN:-N}
+  if [ "$RM_BIN" = "y" ] || [ "$RM_BIN" = "Y" ]; then
+    sudo rm -f "$(command -v stabled)" || true
+    echo "Old stabled binary removed."
+  else
+    echo "Keeping existing stabled binary."
+  fi
+else
+  echo "No existing stabled binary found in PATH."
+fi
+
+# Backup and remove old home dir
 if [ -d "$HOME_DIR/.stabled" ]; then
   echo "Found existing directory: $HOME_DIR/.stabled"
   read -rp "Backup and DELETE it for a clean reinstall? (y/N): " RESET_HOME
@@ -64,9 +96,13 @@ if [ -d "$HOME_DIR/.stabled" ]; then
   else
     echo "Keeping existing .stabled directory. If configs are corrupted, install may fail."
   fi
+else
+  echo "No previous ~/.stabled directory found."
 fi
 
-# -------- Input section --------
+#############################################
+# STEP 1: INPUTS
+#############################################
 read -rp "Node moniker (name, e.g. Jawa Pride): " MONIKER
 if [ -z "${MONIKER}" ]; then
   MONIKER="stable-node"
@@ -88,13 +124,17 @@ if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
   exit 1
 fi
 
-# -------- 1. Update OS + install packages (NO UFW here) --------
+#############################################
+# STEP 2: PACKAGES
+#############################################
 echo
 echo ">>> Step 1: Updating OS and installing packages..."
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y build-essential git wget curl jq lz4 zstd unzip htop net-tools pv perl
 
-# -------- 2. Download + install binary --------
+#############################################
+# STEP 3: BINARY
+#############################################
 echo
 echo ">>> Step 2: Downloading and installing stabled binary..."
 cd "$HOME_DIR"
@@ -109,17 +149,21 @@ sudo mv stabled /usr/bin/stabled
 sudo chmod +x /usr/bin/stabled
 
 echo
-echo "stabled version (should NOT show TOML error now if config was cleaned):"
-stabled version || echo "Warning: cannot show version (if TOML error appears here, old configs still exist)."
+echo "stabled version (should be OK, no TOML error here):"
+stabled version || echo "Warning: cannot show version (if TOML error appears here, old configs still exist in some other HOME)."
 
-# -------- 3. Init node (generate fresh default config/app/client) --------
+#############################################
+# STEP 4: INIT NODE
+#############################################
 echo
 echo ">>> Step 3: Initializing node..."
 stabled init "$MONIKER" --chain-id "$CHAIN_ID"
 
 mkdir -p "$CONFIG_DIR"
 
-# -------- 4. Genesis --------
+#############################################
+# STEP 5: GENESIS
+#############################################
 echo
 echo ">>> Step 4: Downloading genesis..."
 if [ -f "$CONFIG_DIR/genesis.json" ]; then
@@ -136,7 +180,9 @@ echo
 echo "Genesis checksum:"
 sha256sum "$CONFIG_DIR/genesis.json"
 
-# -------- 5. Minimal config.toml tweaks (NO external config.zip) --------
+#############################################
+# STEP 6: CONFIG.TOML TWEAKS (minimal)
+#############################################
 echo
 echo ">>> Step 5: Tweaking config.toml (moniker, peers, rpc)..."
 
@@ -163,7 +209,9 @@ else
   exit 1
 fi
 
-# -------- 6. Snapshot (optional) --------
+#############################################
+# STEP 7: SNAPSHOT (optional)
+#############################################
 if [ "$USE_SNAPSHOT" = "y" ] || [ "$USE_SNAPSHOT" = "Y" ]; then
   echo
   echo ">>> Step 6: Fast sync via snapshot..."
@@ -181,7 +229,9 @@ else
   echo ">>> Step 6: Skipping snapshot, node will sync from scratch."
 fi
 
-# -------- 7. systemd service (set JSON-RPC via flags, NO app.toml edit) --------
+#############################################
+# STEP 8: SYSTEMD SERVICE
+#############################################
 echo
 echo ">>> Step 7: Creating systemd service..."
 
@@ -209,10 +259,12 @@ sudo systemctl enable "${SERVICE_NAME}"
 sudo systemctl restart "${SERVICE_NAME}"
 
 echo
-echo ">>> Service status (if TOML error appears here, check $CONFIG_TOML.backup.*):"
+echo ">>> Service status:"
 sudo systemctl status "${SERVICE_NAME}" --no-pager || true
 
-# -------- 8. Final info --------
+#############################################
+# STEP 9: FINAL INFO
+#############################################
 PUBLIC_IP=$(detect_ip)
 
 echo
