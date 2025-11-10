@@ -2,13 +2,12 @@
 set -euo pipefail
 
 #############################################
-# Stable Testnet one-click installer
+# Stable Testnet one-click installer (clean)
 #############################################
 
 CHAIN_ID="stabletestnet_2201-1"
 BINARY_URL="https://stable-testnet-data.s3.us-east-1.amazonaws.com/stabled-latest-linux-amd64-testnet.tar.gz"
 GENESIS_ZIP_URL="https://stable-testnet-data.s3.us-east-1.amazonaws.com/stable_testnet_genesis.zip"
-CONFIG_ZIP_URL="https://stable-testnet-data.s3.us-east-1.amazonaws.com/rpc_node_config.zip"
 SNAPSHOT_URL="https://stable-snapshot.s3.eu-central-1.amazonaws.com/snapshot.tar.lz4"
 
 HOME_DIR="$HOME"
@@ -24,10 +23,27 @@ loading_step() {
     echo
 }
 
+# -------- Helper: detect public IP --------
+detect_ip() {
+    IP=$(curl -s https://api.ipify.org || curl -s https://ifconfig.me || true)
+    if [ -n "${IP:-}" ]; then
+        echo "$IP"
+        return
+    fi
+
+    IP_LOCAL=$(hostname -I 2>/dev/null | awk '{print $1}')
+    if [ -n "${IP_LOCAL:-}" ]; then
+        echo "$IP_LOCAL"
+        return
+    fi
+
+    echo "YOUR_IP"
+}
+
 loading_step
 
 echo "=========================================="
-echo " Stable Testnet one-click setup"
+echo " Stable Testnet one-click setup (CLEAN)"
 echo " Chain ID: $CHAIN_ID"
 echo "=========================================="
 echo
@@ -72,7 +88,7 @@ if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
   exit 1
 fi
 
-# -------- 1. Update OS + install packages (NO firewall here) --------
+# -------- 1. Update OS + install packages (NO UFW here) --------
 echo
 echo ">>> Step 1: Updating OS and installing packages..."
 sudo apt update && sudo apt upgrade -y
@@ -93,10 +109,10 @@ sudo mv stabled /usr/bin/stabled
 sudo chmod +x /usr/bin/stabled
 
 echo
-echo "stabled version (if this fails with TOML error, your old config was not removed cleanly):"
-stabled version || echo "Warning: cannot show version (might be ok if home was not reset)."
+echo "stabled version (should NOT show TOML error now if config was cleaned):"
+stabled version || echo "Warning: cannot show version (if TOML error appears here, old configs still exist)."
 
-# -------- 3. Init node --------
+# -------- 3. Init node (generate fresh default config/app/client) --------
 echo
 echo ">>> Step 3: Initializing node..."
 stabled init "$MONIKER" --chain-id "$CHAIN_ID"
@@ -120,52 +136,31 @@ echo
 echo "Genesis checksum:"
 sha256sum "$CONFIG_DIR/genesis.json"
 
-# -------- 5. config.toml --------
+# -------- 5. Minimal config.toml tweaks (NO external config.zip) --------
 echo
-echo ">>> Step 5: Applying recommended config (config.toml)..."
-cd "$HOME_DIR"
-wget "$CONFIG_ZIP_URL" -O rpcnode_config.zip
-unzip -o rpcnode_config.zip
+echo ">>> Step 5: Tweaking config.toml (moniker, peers, rpc)..."
 
-if [ -f "$CONFIG_DIR/config.toml" ]; then
-  cp -f "$CONFIG_DIR/config.toml" "$CONFIG_DIR/config.toml.backup.$(date +%s)" || true
-fi
+CONFIG_TOML="$CONFIG_DIR/config.toml"
 
-cp -f config.toml "$CONFIG_DIR/config.toml"
+if [ -f "$CONFIG_TOML" ]; then
+  cp -f "$CONFIG_TOML" "$CONFIG_TOML.backup.$(date +%s)" || true
 
-# Escape moniker untuk TOML
-ESCAPED_MONIKER=$(printf '%s\n' "$MONIKER" | sed 's/[&/\\]/\\&/g')
-sed -i "s/^moniker = \".*\"/moniker = \"${ESCAPED_MONIKER}\"/" "$CONFIG_DIR/config.toml" || true
+  # Escape moniker for TOML
+  ESCAPED_MONIKER=$(printf '%s\n' "$MONIKER" | sed 's/[&/\\]/\\&/g')
+  sed -i "s/^moniker = \".*\"/moniker = \"${ESCAPED_MONIKER}\"/" "$CONFIG_TOML" || true
 
-echo "Updating P2P and RPC parameters in config.toml..."
-sed -i 's/^max_num_inbound_peers *=.*/max_num_inbound_peers = 50/' "$CONFIG_DIR/config.toml" || true
-sed -i 's/^max_num_outbound_peers *=.*/max_num_outbound_peers = 30/' "$CONFIG_DIR/config.toml" || true
-sed -i 's|^persistent_peers *=.*|persistent_peers = "5ed0f977a26ccf290e184e364fb04e268ef16430@37.187.147.27:26656,128accd3e8ee379bfdf54560c21345451c7048c7@37.187.147.22:26656"|' "$CONFIG_DIR/config.toml" || true
-sed -i 's/^pex *=.*/pex = true/' "$CONFIG_DIR/config.toml" || true
-sed -i 's|^laddr *= .*|laddr = "tcp://0.0.0.0:26657"|' "$CONFIG_DIR/config.toml" || true
-sed -i 's/^max_open_connections *=.*/max_open_connections = 900/' "$CONFIG_DIR/config.toml" || true
+  # P2P peers & params
+  sed -i 's/^max_num_inbound_peers *=.*/max_num_inbound_peers = 50/' "$CONFIG_TOML" || true
+  sed -i 's/^max_num_outbound_peers *=.*/max_num_outbound_peers = 30/' "$CONFIG_TOML" || true
+  sed -i 's|^persistent_peers *=.*|persistent_peers = "5ed0f977a26ccf290e184e364fb04e268ef16430@37.187.147.27:26656,128accd3e8ee379bfdf54560c21345451c7048c7@37.187.147.22:26656"|' "$CONFIG_TOML" || true
+  sed -i 's/^pex *=.*/pex = true/' "$CONFIG_TOML" || true
 
-# -------- app.toml (JSON-RPC) --------
-APP_TOML="$CONFIG_DIR/app.toml"
-if [ -f "$APP_TOML" ]; then
-  echo
-  echo "Updating JSON-RPC section in app.toml..."
-  if grep -q "^\[json-rpc\]" "$APP_TOML"; then
-    perl -0pi -e '
-      s/\[json-rpc\]\s*([^[]*)/\[json-rpc\]\nenable = true\naddress = "0.0.0.0:8545"\nws-address = "0.0.0.0:8546"\nallow-unprotected-txs = true\n\n/s
-    ' "$APP_TOML" || true
-  else
-    cat <<EOF >> "$APP_TOML"
-
-[json-rpc]
-enable = true
-address = "0.0.0.0:8545"
-ws-address = "0.0.0.0:8546"
-allow-unprotected-txs = true
-EOF
-  fi
+  # RPC listen on all interfaces (Tendermint)
+  sed -i 's|^laddr *= .*|laddr = "tcp://0.0.0.0:26657"|' "$CONFIG_TOML" || true
+  sed -i 's/^max_open_connections *=.*/max_open_connections = 900/' "$CONFIG_TOML" || true
 else
-  echo "Warning: app.toml not found at $APP_TOML, please edit it manually later."
+  echo "ERROR: $CONFIG_TOML not found after init. Something is wrong."
+  exit 1
 fi
 
 # -------- 6. Snapshot (optional) --------
@@ -186,7 +181,7 @@ else
   echo ">>> Step 6: Skipping snapshot, node will sync from scratch."
 fi
 
-# -------- 7. systemd service --------
+# -------- 7. systemd service (set JSON-RPC via flags, NO app.toml edit) --------
 echo
 echo ">>> Step 7: Creating systemd service..."
 
@@ -197,7 +192,7 @@ After=network-online.target
 
 [Service]
 User=${USER_NAME}
-ExecStart=/usr/bin/stabled start --chain-id ${CHAIN_ID}
+ExecStart=/usr/bin/stabled start --chain-id ${CHAIN_ID} --rpc.laddr "tcp://0.0.0.0:26657" --json-rpc.enable=true --json-rpc.address "0.0.0.0:8545" --json-rpc.ws-address "0.0.0.0:8546" --json-rpc.allow-unprotected-txs=true
 Restart=always
 RestartSec=3
 LimitNOFILE=65535
@@ -214,10 +209,12 @@ sudo systemctl enable "${SERVICE_NAME}"
 sudo systemctl restart "${SERVICE_NAME}"
 
 echo
-echo ">>> Service status:"
+echo ">>> Service status (if TOML error appears here, check $CONFIG_TOML.backup.*):"
 sudo systemctl status "${SERVICE_NAME}" --no-pager || true
 
 # -------- 8. Final info --------
+PUBLIC_IP=$(detect_ip)
+
 echo
 echo "=========================================="
 echo " Stable node setup finished."
@@ -232,9 +229,10 @@ echo "  sudo journalctl -u stabled -f"
 echo "  curl -s localhost:26657/status | jq '.result.sync_info'"
 echo "  curl -s localhost:26657/net_info | jq '.result.n_peers'"
 echo
-echo "Tendermint RPC:   http://<YOUR_IP>:26657"
-echo "JSON-RPC (EVM):   http://<YOUR_IP>:8545"
-echo "WS JSON-RPC:      ws://<YOUR_IP>:8546"
+echo "Detected IP      : $PUBLIC_IP"
+echo "Tendermint RPC   : http://$PUBLIC_IP:26657"
+echo "JSON-RPC (EVM)   : http://$PUBLIC_IP:8545"
+echo "WS JSON-RPC      : ws://$PUBLIC_IP:8546"
 echo
 echo "If you ever need a hard reset:"
 echo "  stabled comet unsafe-reset-all"
