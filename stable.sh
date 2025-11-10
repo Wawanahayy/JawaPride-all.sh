@@ -32,6 +32,24 @@ echo " Chain ID: $CHAIN_ID"
 echo "=========================================="
 echo
 
+# -------- Clean previous install if exists --------
+if [ -d "$HOME_DIR/.stabled" ]; then
+  echo "Found existing directory: $HOME_DIR/.stabled"
+  read -rp "Backup and DELETE it for a clean reinstall? (y/N): " RESET_HOME
+  RESET_HOME=${RESET_HOME:-N}
+  if [ "$RESET_HOME" = "y" ] || [ "$RESET_HOME" = "Y" ]; then
+    TS=$(date +%Y%m%d-%H%M%S)
+    BACKUP_DIR="$HOME_DIR/stabled-backup-$TS"
+    echo "Backing up current .stabled to: $BACKUP_DIR"
+    mkdir -p "$BACKUP_DIR"
+    cp -a "$HOME_DIR/.stabled" "$BACKUP_DIR/" || true
+    echo "Removing $HOME_DIR/.stabled ..."
+    rm -rf "$HOME_DIR/.stabled"
+  else
+    echo "Keeping existing .stabled directory. If configs are corrupted, install may fail."
+  fi
+fi
+
 # -------- Input section --------
 read -rp "Node moniker (name, e.g. Jawa Pride): " MONIKER
 if [ -z "${MONIKER}" ]; then
@@ -41,33 +59,24 @@ fi
 read -rp "Use fast snapshot for quick sync? (y/N): " USE_SNAPSHOT
 USE_SNAPSHOT=${USE_SNAPSHOT:-N}
 
-read -rp "Open public RPC ports 26657 / 8545 / 8546 via firewall? (y/N): " OPEN_RPC
-OPEN_RPC=${OPEN_RPC:-N}
-
-read -rp "Configure UFW firewall automatically? (y/N): " USE_UFW
-USE_UFW=${USE_UFW:-N}
-
 echo
 echo "== Summary =="
-echo "Moniker         : $MONIKER"
-echo "Fast snapshot   : $USE_SNAPSHOT"
-echo "Open RPC ports  : $OPEN_RPC"
-echo "Auto UFW config : $USE_UFW"
+echo "Moniker       : $MONIKER"
+echo "Fast snapshot : $USE_SNAPSHOT"
 echo
 
 read -rp "Proceed with installation? (y/N): " CONFIRM
 CONFIRM=${CONFIRM:-N}
-# Pakai tes sederhana, bukan [[ =~ ]]
 if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
   echo "Aborted."
   exit 1
 fi
 
-# -------- 1. Update OS + install packages --------
+# -------- 1. Update OS + install packages (NO firewall here) --------
 echo
 echo ">>> Step 1: Updating OS and installing packages..."
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y build-essential git wget curl jq lz4 zstd unzip htop net-tools ufw pv perl
+sudo apt install -y build-essential git wget curl jq lz4 zstd unzip htop net-tools pv perl
 
 # -------- 2. Download + install binary --------
 echo
@@ -84,8 +93,8 @@ sudo mv stabled /usr/bin/stabled
 sudo chmod +x /usr/bin/stabled
 
 echo
-echo "stabled version:"
-stabled version || echo "Warning: cannot show version (check binary name/path)."
+echo "stabled version (if this fails with TOML error, your old config was not removed cleanly):"
+stabled version || echo "Warning: cannot show version (might be ok if home was not reset)."
 
 # -------- 3. Init node --------
 echo
@@ -177,35 +186,9 @@ else
   echo ">>> Step 6: Skipping snapshot, node will sync from scratch."
 fi
 
-# -------- 7. Firewall (UFW) --------
-if [ "$USE_UFW" = "y" ] || [ "$USE_UFW" = "Y" ]; then
-  echo
-  echo ">>> Step 7: Configuring UFW firewall..."
-  sudo ufw allow 22/tcp
-  sudo ufw allow 26656/tcp
-
-  if [ "$OPEN_RPC" = "y" ] || [ "$OPEN_RPC" = "Y" ]; then
-    sudo ufw allow 26657/tcp
-    sudo ufw allow 8545/tcp
-    sudo ufw allow 8546/tcp
-  fi
-
-  sudo ufw --force enable
-else
-  echo
-  echo ">>> Step 7: Skipping UFW auto configuration."
-  echo "You can manually run:"
-  echo "  sudo ufw allow 22/tcp"
-  echo "  sudo ufw allow 26656/tcp"
-  echo "  sudo ufw allow 26657/tcp  # if you need public RPC"
-  echo "  sudo ufw allow 8545/tcp   # if you need public JSON-RPC"
-  echo "  sudo ufw allow 8546/tcp   # if you need public WS"
-  echo "  sudo ufw enable"
-fi
-
-# -------- 8. systemd service --------
+# -------- 7. systemd service --------
 echo
-echo ">>> Step 8: Creating systemd service..."
+echo ">>> Step 7: Creating systemd service..."
 
 sudo tee /etc/systemd/system/${SERVICE_NAME}.service > /dev/null <<EOF
 [Unit]
@@ -234,7 +217,7 @@ echo
 echo ">>> Service status:"
 sudo systemctl status "${SERVICE_NAME}" --no-pager || true
 
-# -------- 9. Final info --------
+# -------- 8. Final info --------
 echo
 echo "=========================================="
 echo " Stable node setup finished."
